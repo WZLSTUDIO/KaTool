@@ -61,7 +61,6 @@ public class RedisUtils<K, V> {
             throw new KaToolException(ErrorCode.PARAMS_ERROR,"请检查是否开启Redis多级缓存策略");
         }
         // 获取ThreadLocal
-        ThreadLocal<Boolean> threadLocal = new ThreadLocal<>();
         Boolean aBoolean = threadLocal.get();
         if (null == aBoolean) {
             return true;

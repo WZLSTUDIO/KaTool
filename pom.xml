@@ -10,7 +10,7 @@
     </parent>
     <groupId>cn.katool</groupId>
     <artifactId>KaTool</artifactId>
-    <version>1.9.6.GAMA</version>
+    <version>1.9.7.SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>KaTool</name>
     <description>KaTool -
@@ -103,6 +103,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.0</version>
         </dependency>
     </dependencies>
 
