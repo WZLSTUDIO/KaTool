@@ -17,6 +17,7 @@ public class KimiChatResponse {
     private List<Choice> choices;
     private Usage usage;
 
+
     // Getters and setters for each field
     @Data
     @AllArgsConstructor

@@ -8,8 +8,15 @@ public enum KimiBuilderEnum {
     BEGIN("begin"),
     BASE("base",Arrays.asList(BEGIN)),
     CHAT("chat",Arrays.asList(BASE)),
-    COMPLETIONS("Completions",Arrays.asList(CHAT)),
+    COMPLETIONS("completions",Arrays.asList(CHAT)),
     FILES("files",Arrays.asList(BASE)),
+    TOKENIZERS("tokenizers",Arrays.asList(BASE)),
+    ESTIMATE_TOKEN_COUNT("estimate-token-count",Arrays.asList(TOKENIZERS)),
+
+    USERS("users",Arrays.asList(BASE)),
+    ME("me",Arrays.asList(USERS)),
+    BALANCE("balance",Arrays.asList(ME)),
+
     END("end");
     private String name;
     private List<KimiBuilderEnum> lastStatusList;

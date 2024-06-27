@@ -3,6 +3,7 @@ package cn.katool.services.ai.server.kimi;
 import cn.hutool.http.HttpUtil;
 import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.constant.CommonAIRoleEnum;
+import cn.katool.services.ai.constant.KimiModel;
 import cn.katool.services.ai.constant.KimiResponseFormatEnum;
 import cn.katool.services.ai.model.builder.KimiBuilder;
 import cn.katool.services.ai.model.drive.PromptTemplateDrive;
@@ -11,26 +12,30 @@ import cn.katool.services.ai.model.entity.CommonAIMessage;
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.File;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class KimiAIService implements CommonAIService {
 
+    public KimiAIService() {
+        promptTemplateDrive = new PromptTemplateDrive("你好，请你提问",new HashMap<>());
+        history = new CopyOnWriteArrayList<>();
+    }
 
     PromptTemplateDrive promptTemplateDrive;
 
     List<CommonAIMessage> history;
 
     String jsonTemplate;
-    KimiChatRequest chatRequest;
+    KimiChatRequest chatRequest = new KimiChatRequest();
 
 
     public KimiAIService(PromptTemplateDrive promptTemplateDrive) {
@@ -61,22 +66,34 @@ public class KimiAIService implements CommonAIService {
         this.promptTemplateDrive = drive;
         this.history.add(promptTemplateDrive.generateTemplate());
     }
+
+    private static volatile CommonAIMessage lastPrompt;
     private String askAdapter(String msg,boolean usingHistory,boolean returnJson) {
+
+        List<CommonAIMessage> messages;
         if (returnJson) {
             chatRequest.setResponse_format(KimiResponseFormatEnum.JSON);
+            msg += "请你按照以下Json格式回复我：\n" +this.getJsonTemplate();
         }
-        List<CommonAIMessage> messages;
+        else {
+            chatRequest.setResponse_format(KimiResponseFormatEnum.TEXT);
+        }
         if (!usingHistory) {
-            messages = Arrays.asList(promptTemplateDrive.generateTemplate(),new CommonAIMessage(CommonAIRoleEnum.USER, msg));
+            messages = new CopyOnWriteArrayList<>();
+            messages.addAll(Arrays.asList(promptTemplateDrive.generateTemplate(),new CommonAIMessage(CommonAIRoleEnum.USER, msg)));
         }
         else{
             messages = history;
             messages.add(new CommonAIMessage(CommonAIRoleEnum.USER, msg));
         }
+
         chatRequest.setMessages(messages);
         KimiChatResponse post = KimiBuilder.create().chat().completions().build()
                 .post(chatRequest);
         CommonAIMessage message = post.getChoices().get(0).getMessage();
+        if (usingHistory){
+            this.history.add(message);
+        }
         return message.getContent();
     }
     @Override
@@ -117,10 +134,23 @@ public class KimiAIService implements CommonAIService {
     }
 
     @Override
+    public List<String> uploadFile(List<File> files) {
+        List<KimiFileMeta> kimiFileMetas = KimiBuilder.create().files().build().uploadFiles(files);
+        return  kimiFileMetas.stream().map(KimiFileMeta::getId).collect(Collectors.toList());
+    }
+
+    @Override
     public String uploadFile(String filePath) {
-        byte[] bytes = HttpUtil.downloadBytes(filePath);
-        KimiFileMeta upload = KimiBuilder.create().files().build().upload(bytes);
+        KimiFileMeta upload = KimiBuilder.create().files().build().upload(HttpUtil.downloadFileFromUrl(filePath,System.getProperty("user.dir")));
         return upload.getId();
+    }
+
+    @Override
+    public List<String> uploadFileOfUrls(List<String> filePaths) {
+
+        List<File> collect = filePaths
+                .parallelStream().map(v -> HttpUtil.downloadFileFromUrl(v, System.getProperty("user.dir"))).collect(Collectors.toList());
+        return uploadFile(collect);
     }
 
     @Override
@@ -141,5 +171,23 @@ public class KimiAIService implements CommonAIService {
     @Override
     public KimiFileContentResponse getFileContent(String fileId){
         return KimiBuilder.create().files().build().getFileContent(fileId);
+    }
+
+    @Override
+    public Long countToken(){
+        return KimiBuilder.create().tokenizers().estimate_token_count().build().countToken(this.chatRequest);
+    }
+
+    @Override
+    public Long countToken(List<CommonAIMessage> chatRequest){
+        return KimiBuilder.create().tokenizers().estimate_token_count().build()
+                .countToken(new KimiChatRequest()
+                        .setModel(KimiModel.MOONSHOT_V1_32K)
+                        .setMax_tokens(2000000).setMessages(chatRequest));
+    }
+
+    @Override
+    public KimiOtherResponse.KimiOtherResponseData queryMoney(){
+        return KimiBuilder.create().users().me().balance().build().queryMoney();
     }
 }

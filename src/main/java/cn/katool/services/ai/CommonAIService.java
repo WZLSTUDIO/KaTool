@@ -1,10 +1,7 @@
 package cn.katool.services.ai;
 
 import cn.katool.services.ai.model.drive.PromptTemplateDrive;
-import cn.katool.services.ai.model.dto.kimi.KimiFileContentResponse;
-import cn.katool.services.ai.model.dto.kimi.KimiFileDeleteResponse;
-import cn.katool.services.ai.model.dto.kimi.KimiFileMeta;
-import cn.katool.services.ai.model.dto.kimi.KimiFileMetaResponse;
+import cn.katool.services.ai.model.dto.kimi.*;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
 import com.google.gson.Gson;
 
@@ -46,14 +43,26 @@ public interface CommonAIService {
 
     String uploadFile(File file);
 
+
+    List<String> uploadFile(List<File> files);
+
     String uploadFile(String filePath);
 
 
     Object getFileMeta(String fileId);
+
+
+    List<String> uploadFileOfUrls(List<String> filePaths);
 
     Object listOfFile();
 
     Object deleteFile(String fileId);
 
     Object getFileContent(String fileId);
+
+    Long countToken();
+
+    Long countToken(List<CommonAIMessage> chatRequest);
+
+    KimiOtherResponse.KimiOtherResponseData queryMoney();
 }

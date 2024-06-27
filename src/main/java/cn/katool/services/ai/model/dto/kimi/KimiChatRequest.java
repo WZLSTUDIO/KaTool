@@ -24,9 +24,13 @@ public class KimiChatRequest {
     Integer n = 1;
     Float presence_penalty = 0f;
     Float frequency_penalty = 0f;
-    KimiResponseFormatEnum response_format =  KimiResponseFormatEnum.TEXT;
+    ResponseFormat response_format =  new ResponseFormat(KimiResponseFormatEnum.TEXT);
     List<String> stop = null;
     Boolean stream = false;
+
+    public void setResponse_format(KimiResponseFormatEnum  response_format) {
+        this.response_format = new ResponseFormat(response_format);
+    }
 
     public KimiChatRequest setStop(List<String> stop) {
         if (stop == null || stop.isEmpty()) {

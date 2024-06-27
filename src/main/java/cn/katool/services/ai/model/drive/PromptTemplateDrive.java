@@ -17,6 +17,7 @@ public class PromptTemplateDrive {
 
     String template;
 
+
     Map<String,String> insteadMapping;
 
     static PromptTemplateDrive create(String template,Map<String,String> insteadMapping){
@@ -24,8 +25,9 @@ public class PromptTemplateDrive {
     }
 
     public CommonAIMessage generateTemplate(){
-        AtomicReference<String> res= new AtomicReference<>("");
-        this.insteadMapping.entrySet().forEach(item -> res.set(StringUtils.replace(this.template,"${" + item.getKey() + "}", item.getValue())));
-        return new CommonAIMessage(CommonAIRoleEnum.SYS,res.get());
+        AtomicReference<String> res= new AtomicReference<>(template);
+        this.insteadMapping.entrySet().forEach(item -> res.set(StringUtils.replace(this.template, "${" + item.getKey() + "}", item.getValue())));
+        return new CommonAIMessage(CommonAIRoleEnum.SYS, res.get());
     }
+
 }

@@ -1,6 +1,7 @@
 package cn.katool.services.ai.model.entity;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ByteUtil;
 import cn.hutool.http.*;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
@@ -9,6 +10,7 @@ import cn.katool.services.ai.model.builder.KimiBuilder;
 import cn.katool.services.ai.model.dto.kimi.*;
 import com.alibaba.excel.util.FileUtils;
 import com.alibaba.excel.util.ListUtils;
+import com.alibaba.excel.util.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpConstants;
@@ -40,13 +42,13 @@ public class Kimi{
     String contentType;
     private void validUnLegal(KimiBuilderEnum kimiBuilderEnum) {
         if (this.getKimiBuilder().getMaster().equals(kimiBuilderEnum)){
-            throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[1].getMethodName()+" method is not supported in file mode");
+            throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
         }
     }
 
     private void validLegal(KimiBuilderEnum kimiBuilderEnum) {
         if (!this.getKimiBuilder().getMaster().equals(kimiBuilderEnum)){
-            throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[1].getMethodName()+" method is not supported in file mode");
+            throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
         }
     }
 
@@ -60,6 +62,9 @@ public class Kimi{
         return this;
     }
     private HttpRequest getRequest(Method method){
+        if (StringUtils.isBlank(key)){
+            throw new KaToolException(ErrorCode.OPER_ERROR,"kimi-key is null");
+        }
         HttpRequest request = HttpUtil.createRequest(method,kimiBuilder.getUrl().toString());
         request.contentType(this.contentType)
                 .header(Header.AUTHORIZATION,"Bearer " + key);
@@ -68,9 +73,12 @@ public class Kimi{
     public KimiChatResponse post(KimiChatRequest kimiChatRequest){
         validUnLegal(KimiBuilderEnum.FILES);
         HttpRequest post = getRequest(Method.POST);
-        HttpResponse response = post.body(new Gson().toJson(kimiChatRequest))
+        HttpResponse httpResponse = post.body(new Gson().toJson(kimiChatRequest))
                 .execute();
-        String resJson = response.body();
+        String resJson = httpResponse.body();
+        if (!httpResponse.isOk()){
+            throw new KaToolException(ErrorCode.OPER_ERROR,resJson);
+        }
         KimiChatResponse res = new Gson().fromJson(resJson, new TypeToken<KimiChatResponse>() {
         }.getType());
         return res;
@@ -78,47 +86,29 @@ public class Kimi{
 
 
     public KimiFileMeta upload(File file){
-        KimiFileMeta kimiFileMeta = null;
-        try {
-            kimiFileMeta = this.upload(FileUtils.readFileToByteArray(file));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return kimiFileMeta;
-    };
-
-    public KimiFileMeta upload(byte[] bytes){
         validLegal(KimiBuilderEnum.FILES);
         this.contentType("multipart/form-data");
         HttpRequest post = getRequest(Method.POST);
-        post.form().put("purpose","file-extract");
-        post.form().put("file", bytes);
+        post.form("purpose","file-extract");
+        post.form("file", file);
         HttpResponse response = post.execute();
         KimiFileMeta kimiFileMeta = new Gson().fromJson(response.body(), new TypeToken<KimiFileMeta>(){}.getType());
         return kimiFileMeta;
     };
 
-    public List<KimiFileMeta> uploadFiles(List<File> files) {
-        List<byte[]> fileByteList = files.parallelStream().map(file -> {
-            try {
-                return FileUtils.readFileToByteArray(file);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
-        return uploadFiles(ArrayUtil.toArray(fileByteList,byte[].class));
-    }
 
-    public List<KimiFileMeta> uploadFiles(byte[][] bytesArray) {
+    public List<KimiFileMeta> uploadFiles(List<File> files) {
         validLegal(KimiBuilderEnum.FILES);
         this.contentType("multipart/form-data");
-        List<HttpResponse> responseList = new ArrayList<>();
-        List<byte[]> bytesList = Arrays.asList(bytesArray);
-        bytesList.parallelStream().forEach(bytes->{
+        List<HttpResponse> responseList = new ArrayList<>();;
+        files.parallelStream().forEach(file->{
             HttpRequest post = getRequest(Method.POST);
-            post.form().put("purpose", "file-extract");
-            post.form().put("file", bytes);
+            post.form("purpose", "file-extract");
+            post.form("file", file);
             HttpResponse httpResponse = post.execute();
+            if (!httpResponse.isOk()){
+                throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+            }
             responseList.add(httpResponse);
         });
         CopyOnWriteArrayList<KimiFileMeta> kimiFileMetaList = new CopyOnWriteArrayList<>();
@@ -128,28 +118,64 @@ public class Kimi{
         return kimiFileMetaList.stream().collect(Collectors.toList());
     }
 
+
     public KimiFileMetaResponse listOfFileMetas(){
         HttpRequest request = getRequest(Method.GET);
-        HttpResponse response = request.execute();
-        return new Gson().fromJson(response.body(),new TypeToken<KimiFileMetaResponse>(){}.getType());
+        HttpResponse httpResponse = request.execute();
+        if (!httpResponse.isOk()){
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        return new Gson().fromJson(httpResponse.body(),new TypeToken<KimiFileMetaResponse>(){}.getType());
     }
 
     public KimiFileDeleteResponse deleteFile(String fileId){
         HttpRequest request = getRequest(Method.DELETE);
-        HttpResponse response = request.setUrl(request.getUrl() + "/" + fileId).execute();
-        return new Gson().fromJson(response.body(), new TypeToken<KimiFileDeleteResponse>(){}.getType());
+        HttpResponse httpResponse = request.setUrl(request.getUrl() + "/" + fileId).execute();
+        if (!httpResponse.isOk()){
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        return new Gson().fromJson(httpResponse.body(), new TypeToken<KimiFileDeleteResponse>(){}.getType());
     }
 
     public KimiFileMeta getFileMeta(String fileId){
         HttpRequest request = getRequest(Method.GET);
-        HttpResponse response = request.setUrl(request.getUrl() + "/" + fileId).execute();
-        return new Gson().fromJson(response.body(), new TypeToken<KimiFileMeta>(){}.getType());
+        HttpResponse httpResponse = request.setUrl(request.getUrl() + "/" + fileId).execute();
+        if (!httpResponse.isOk()){
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        return new Gson().fromJson(httpResponse.body(), new TypeToken<KimiFileMeta>(){}.getType());
     }
 
     public KimiFileContentResponse getFileContent(String fileId){
         HttpRequest request = getRequest(Method.GET);
-        HttpResponse response = request.setUrl(request.getUrl() + "/" + fileId+"/content").execute();
-        return new Gson().fromJson(response.body(), new TypeToken<KimiFileContentResponse>(){}.getType());
+        HttpResponse httpResponse = request.setUrl(request.getUrl() + "/" + fileId+"/content").execute();
+        if (!httpResponse.isOk()){
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        return new Gson().fromJson(httpResponse.body(), new TypeToken<KimiFileContentResponse>(){}.getType());
     }
 
+    public Long countToken(KimiChatRequest kimiChatRequest){
+        HttpRequest request = getRequest(Method.POST);
+        HttpResponse httpResponse = request.execute();
+        if (!httpResponse.isOk()) {
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        KimiOtherResponse otherResponse = new Gson().fromJson(httpResponse.body(),
+                new TypeToken<KimiOtherResponse>() {
+                }.getType());
+        return otherResponse.getData().getTotal_tokens();
+    }
+
+    public KimiOtherResponse.KimiOtherResponseData queryMoney(){
+        HttpRequest request = getRequest(Method.GET);
+        HttpResponse httpResponse = request.execute();
+        if (!httpResponse.isOk()) {
+            throw new KaToolException(ErrorCode.OPER_ERROR, httpResponse.body());
+        }
+        KimiOtherResponse kimiOtherResponse = new Gson().fromJson(httpResponse.body(),
+                new TypeToken<KimiOtherResponse>() {
+                }.getType());
+        return kimiOtherResponse.getData();
+    }
 }

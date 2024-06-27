@@ -12,8 +12,8 @@ import java.util.Date;
 public class KimiFileMeta {
     private String id;
     private String object;
-    private long bytes;
-    private Date created_at;
+    private Long bytes;
+    private Long created_at;
     private String filename;
     private String purpose;
     private String status;

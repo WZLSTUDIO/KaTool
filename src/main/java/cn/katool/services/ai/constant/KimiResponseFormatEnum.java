@@ -18,4 +18,8 @@ public enum KimiResponseFormatEnum {
     public void setType(String type) {
         this.type = type;
     }
+
+    public String toJson(){
+        return "{\"type\":\"" + this.type + "\"}";
+    }
 }

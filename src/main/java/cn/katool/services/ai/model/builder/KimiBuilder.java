@@ -28,7 +28,7 @@ public class KimiBuilder{
         }
 
         public static KimiBuilder create(){
-            return new KimiBuilder(new StringBuffer(KimiConfig.KIMI_BASE_URL),KimiBuilderEnum.BEGIN);
+            return new KimiBuilder(new StringBuffer(KimiConfig.KIMI_BASE_URL),KimiBuilderEnum.BASE);
         }
 
         private void validStatus(KimiBuilderEnum target){
@@ -39,10 +39,10 @@ public class KimiBuilder{
         }
 
         private KimiBuilder complete(){
-            String methodName = Thread.currentThread().getStackTrace()[1].getMethodName();
+            String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
             KimiBuilderEnum target = KimiBuilderEnum.valueOf(methodName.toUpperCase(Locale.ROOT));
             validStatus(target);
-            this.url.append("/"+ methodName);
+            this.url.append("/"+ target.getName());
             this.status = target;
             return this;
         }
@@ -57,7 +57,21 @@ public class KimiBuilder{
         public KimiBuilder files(){
             return complete();
         }
-
+        public KimiBuilder tokenizers(){
+            return  complete();
+        }
+        public KimiBuilder estimate_token_count(){
+            return  complete();
+        }
+        public  KimiBuilder users(){
+            return complete();
+        }
+        public KimiBuilder me(){
+            return  complete();
+        }
+        public KimiBuilder balance(){
+            return  complete();
+        }
         public Kimi build(){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;

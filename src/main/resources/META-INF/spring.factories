@@ -5,4 +5,5 @@ cn.katool.config.util.LockConfig,\
 cn.katool.config.util.RedisUtilConfig,\
 cn.katool.config.auth.AuthConfig,\
 cn.katool.config.cache.CaffineConfig,\
-cn.katool.config.cache.EhCacheConfig
+cn.katool.config.cache.EhCacheConfig,\
+cn.katool.config.ai.kimi.KimiConfig 
