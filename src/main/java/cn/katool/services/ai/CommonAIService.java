@@ -14,19 +14,19 @@ public interface CommonAIService {
 
     PromptTemplateDrive getPromptTemplateDrive();
 
-    void setPromptTemplateDrive(PromptTemplateDrive promptTemplateDrive);
+    CommonAIService setPromptTemplateDrive(PromptTemplateDrive promptTemplateDrive);
 
-    void setJsonTemplate(String jsonTemplate);
+    CommonAIService setJsonTemplate(String jsonTemplate);
 
-    void setJsonTemplate(Object dao);
+    CommonAIService setJsonTemplate(Object dao);
 
 
     String getJsonTemplate();
 
-    void claerHistory();
+    CommonAIService claerHistory();
 
 
-    void reload(PromptTemplateDrive drive);
+    CommonAIService reload(PromptTemplateDrive drive);
 
 
     String ask(String msg);

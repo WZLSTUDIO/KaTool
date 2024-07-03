@@ -12,6 +12,7 @@ import cn.katool.services.ai.model.entity.CommonAIMessage;
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -23,10 +24,11 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
+@Accessors(chain = true)
 public class KimiAIService implements CommonAIService {
 
     public KimiAIService() {
-        promptTemplateDrive = new PromptTemplateDrive("你好，请你提问",new HashMap<>());
+        promptTemplateDrive = PromptTemplateDrive.create("你好，请你提问",new HashMap<>());
         history = new CopyOnWriteArrayList<>();
     }
 
@@ -46,25 +48,29 @@ public class KimiAIService implements CommonAIService {
 
 
     @Override
-    public void setJsonTemplate(String jsonTemplate) {
+    public CommonAIService setJsonTemplate(String jsonTemplate) {
         this.jsonTemplate = jsonTemplate;
+        return this;
     }
 
     @Override
-    public void setJsonTemplate(Object dao) {
+    public CommonAIService setJsonTemplate(Object dao) {
         this.jsonTemplate = new Gson().toJson(dao);
+        return this;
     }
 
     @Override
-    public void claerHistory() {
+    public CommonAIService claerHistory() {
         this.history.clear();
+        return this;
     }
 
     @Override
-    public void reload(PromptTemplateDrive drive) {
+    public CommonAIService reload(PromptTemplateDrive drive) {
         this.claerHistory();
         this.promptTemplateDrive = drive;
         this.history.add(promptTemplateDrive.generateTemplate());
+        return this;
     }
 
     private static volatile CommonAIMessage lastPrompt;
