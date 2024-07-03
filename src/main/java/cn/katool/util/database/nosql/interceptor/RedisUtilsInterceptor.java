@@ -1,7 +1,9 @@
 package cn.katool.util.database.nosql.interceptor;
 
 
+import cn.katool.config.util.RedisUtilConfig;
 import cn.katool.util.cache.policy.CachePolicy;
+import cn.katool.util.cache.policy.impl.DefaultCachePolicy;
 import cn.katool.util.database.nosql.RedisUtils;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,9 @@ public class RedisUtilsInterceptor {
     @Resource
     private RedisUtils redisUtils;
 
+    @Resource
+    RedisUtilConfig config;
+
     public CachePolicy getCachePolicy() {
         return this.cachePolicy;
     }
@@ -35,8 +40,10 @@ public class RedisUtilsInterceptor {
         this.cachePolicy = cachePolicy;
     }
     public Boolean casePolicy() throws Throwable {
+
         if (ObjectUtils.isEmpty(cachePolicy)||
-                cachePolicy.getClass().getName()=="cn.katool.util.cache.policy.DefaultCachePolicy"||
+                DefaultCachePolicy.class.getName().equals(cachePolicy.getClass().getName())||
+                "default".equals(config.getPolicy()) ||
                 !redisUtils.getOnfCacheInThread()){
             return false;
         }
