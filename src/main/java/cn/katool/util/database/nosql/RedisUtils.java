@@ -18,6 +18,7 @@ import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.config.util.RedisUtilConfig;
 import cn.katool.util.ScheduledTaskUtil;
+import cn.katool.util.classes.SpringContextUtils;
 import cn.katool.util.lock.LockUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static cn.katool.util.lock.LockUtil.*;
 
@@ -45,6 +47,26 @@ public class RedisUtils<K, V> {
     @Resource
     RedisUtilConfig redisUtilConfig;
     private static ThreadLocal<Boolean> threadLocal = new ThreadLocal<>();
+
+    public Object doUnCache(Supplier supplier){
+        boolean status = false;
+        String policy = null;
+        if (null != redisUtilConfig){
+            policy = redisUtilConfig.getPolicy();
+        }
+        if ("default".equals(policy)){
+            return supplier.get();
+        }
+        if (this.getOnfCacheInThread().equals(true)){
+            this.onfCacheInThread(false);
+            status = true;
+        }
+        Object res = supplier.get();
+        if (status){
+            this.onfCacheInThread(true);
+        }
+        return res;
+    }
 
 
     public Boolean onfCacheInThread(Boolean flag){
