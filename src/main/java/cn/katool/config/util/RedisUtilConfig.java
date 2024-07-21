@@ -3,7 +3,7 @@ package cn.katool.config.util;
 import cn.katool.common.MethodInterface;
 import cn.katool.config.cache.CacheConfig;
 import cn.katool.util.cache.policy.impl.EhCacheCachePolicy;
-import cn.katool.util.lock.LockUtil;
+import cn.katool.util.lock.RedisLockUtil;
 import cn.katool.util.cache.policy.CachePolicy;
 import cn.katool.util.cache.policy.impl.CaffeineCachePolicy;
 import cn.katool.util.cache.policy.impl.DefaultCachePolicy;
@@ -19,7 +19,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
-import java.util.function.Supplier;
 
 
 @Slf4j
@@ -61,8 +60,8 @@ public class RedisUtilConfig {
 
     @Bean
     @DependsOn({"KaTool-Init"})
-    public LockUtil LockUtil(){
-        return LockUtil.getInstance();
+    public RedisLockUtil LockUtil(){
+        return RedisLockUtil.getInstance();
     }
 
 

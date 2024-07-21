@@ -1,7 +1,7 @@
 /**
  * Title
  *
- * @ClassName: LockUtil
+ * @ClassName: RedisLockUtil
  * @Description:锁工具类,通过内部枚举类实现单例，防止反射攻击
  * @author: Karos
  * @date: 2023/1/4 0:17
@@ -36,7 +36,7 @@ import static cn.katool.util.lock.LockMessageWatchDog.LOCK_MQ_NAME;
 import static cn.katool.util.lock.LockMessageWatchDog.threadWaitQueue;
 
 @Slf4j
-public class LockUtil {
+public class RedisLockUtil {
         @Resource
         RedisTemplate redisTemplate;
         // lockName:uID:numbers
@@ -110,7 +110,7 @@ public class LockUtil {
 //                log.debug("lockLua -> {}",lockScript);
                 Long execute = (Long) redisTemplate.execute(defaultRedisScript, keys, args.toArray());
                 if (ObjectUtil.isEmpty(execute)) {
-                        log.debug("【KaTool::LockUtil】 {}成功抢到锁，锁名：{}，过期时间：{}，单位：{}",hashKey,lockName,expTime,timeUnit);
+                        log.debug("【KaTool::RedisLockUtil】 {}成功抢到锁，锁名：{}，过期时间：{}，单位：{}",hashKey,lockName,expTime,timeUnit);
                 }
                 return execute;
         }
@@ -131,10 +131,10 @@ public class LockUtil {
 //                log.debug("unlockLua -> {}",unLockScript);
                 Long remainLocks = (Long) redisTemplate.execute(defaultRedisScript, keys, args.toArray());
                 if (ObjectUtil.isEmpty(remainLocks)) {
-                        log.error("【KaTool::LockUtil】 {}释放锁失败，请释放自己的锁，锁名：{}",hashKey,lockName);
+                        log.error("【KaTool::RedisLockUtil】 {}释放锁失败，请释放自己的锁，锁名：{}",hashKey,lockName);
                 }
                 else if(remainLocks==0){
-                        log.debug("【KaTool::LockUtil】 {}成功释放锁，锁名：{}",hashKey,lockName);
+                        log.debug("【KaTool::RedisLockUtil】 {}成功释放锁，锁名：{}",hashKey,lockName);
                         redisTemplate.convertAndSend(LOCK_MQ_NAME,lockName);
                 }
                 return remainLocks;
@@ -183,7 +183,7 @@ public class LockUtil {
                                 if (aLong==null) {
                                         break;
                                 }
-                        log.debug("【KaTool::LockUtil】 {}未抢到锁，线程等待通知唤醒，最多等待时间：{}，锁名：{}，过期时间：{}，单位：{}",hashkey[0],aLong,lockName,exptime,timeUnit);
+                        log.debug("【KaTool::RedisLockUtil】 {}未抢到锁，线程等待通知唤醒，最多等待时间：{}，锁名：{}，过期时间：{}，单位：{}",hashkey[0],aLong,lockName,exptime,timeUnit);
 //                                Thread.sleep(aLong/3);     // 初步改进：使用线程休眠，采用自旋锁+线程互斥
                         if (ObjectUtil.isEmpty(threads)){
                                 synchronized (lockName.intern()){
@@ -284,20 +284,20 @@ public class LockUtil {
         //利用枚举类实现单例模式，枚举类属性为静态的
         private static enum SingletonFactory{
                 Singleton;
-                LockUtil lockUtil;
+                RedisLockUtil redisLockUtil;
                 private SingletonFactory(){
-                        lockUtil=new LockUtil();
+                        redisLockUtil =new RedisLockUtil();
                 }
-                public LockUtil getInstance(){
-                        return lockUtil;
+                public RedisLockUtil getInstance(){
+                        return redisLockUtil;
                 }
         }
 
-        public static LockUtil getInstance(){
-                return SingletonFactory.Singleton.lockUtil;
+        public static RedisLockUtil getInstance(){
+                return SingletonFactory.Singleton.redisLockUtil;
         }
 
-        private LockUtil(){
+        private RedisLockUtil(){
 
         }
 

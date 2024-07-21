@@ -1,9 +1,8 @@
 package cn.katool.services.ai;
 
 import cn.katool.services.ai.model.drive.PromptTemplateDrive;
-import cn.katool.services.ai.model.dto.kimi.*;
+import cn.katool.services.ai.model.dto.kimi.other.KimiOtherResponse;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.lang.reflect.Type;

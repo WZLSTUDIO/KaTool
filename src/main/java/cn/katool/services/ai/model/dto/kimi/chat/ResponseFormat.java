@@ -1,6 +1,6 @@
-package cn.katool.services.ai.model.dto.kimi;
+package cn.katool.services.ai.model.dto.kimi.chat;
 
-import cn.katool.services.ai.constant.KimiResponseFormatEnum;
+import cn.katool.services.ai.constant.kimi.KimiResponseFormatEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

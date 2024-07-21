@@ -1,4 +1,4 @@
-package cn.katool.services.ai.model.dto.kimi;
+package cn.katool.services.ai.model.dto.kimi.other;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import org.checkerframework.checker.units.qual.N;
 public class KimiOtherResponse {
     Integer code;
     String scode;
-    Boolean staus;
+    Boolean status;
     KimiOtherResponseData data;
     @Data
     @AllArgsConstructor

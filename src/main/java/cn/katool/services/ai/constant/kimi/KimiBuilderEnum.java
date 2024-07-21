@@ -1,4 +1,4 @@
-package cn.katool.services.ai.constant;
+package cn.katool.services.ai.constant.kimi;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +16,10 @@ public enum KimiBuilderEnum {
     USERS("users",Arrays.asList(BASE)),
     ME("me",Arrays.asList(USERS)),
     BALANCE("balance",Arrays.asList(ME)),
-
+    CACHING("caching",Arrays.asList(BASE)),
+    REFS("refs",Arrays.asList(CACHING)),
+    TAGS("tags",Arrays.asList(REFS)),
+    CONTENT("content",Arrays.asList(FILES,TAGS)),
     END("end");
     private String name;
     private List<KimiBuilderEnum> lastStatusList;

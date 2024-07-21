@@ -1,4 +1,4 @@
-package cn.katool.services.ai.model.dto.kimi;
+package cn.katool.services.ai.model.dto.kimi.chat;
 
 import cn.katool.services.ai.model.entity.CommonAIMessage;
 import lombok.AllArgsConstructor;

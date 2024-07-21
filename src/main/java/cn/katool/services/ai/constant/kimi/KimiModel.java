@@ -1,4 +1,4 @@
-package cn.katool.services.ai.constant;
+package cn.katool.services.ai.constant.kimi;
 
 public interface KimiModel {
     String MOONSHOT_V1_8K = "moonshot-v1-8k";

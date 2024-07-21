@@ -1,4 +1,4 @@
-package cn.katool.services.ai.model.dto.kimi;
+package cn.katool.services.ai.model.dto.kimi.file;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

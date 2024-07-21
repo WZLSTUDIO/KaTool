@@ -1,4 +1,4 @@
-package cn.katool.services.ai.constant;
+package cn.katool.services.ai.constant.kimi;
 
 public enum KimiResponseFormatEnum {
     TEXT("text"),

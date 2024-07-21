@@ -1,10 +1,9 @@
-package cn.katool.services.ai.model.dto.kimi;
+package cn.katool.services.ai.model.dto.kimi.chat;
 
-import cn.katool.services.ai.constant.KimiModel;
-import cn.katool.services.ai.constant.KimiResponseFormatEnum;
+import cn.katool.services.ai.constant.kimi.KimiResponseFormatEnum;
+import cn.katool.services.ai.model.dto.kimi.base.KimiBaseRequest;
+import cn.katool.services.ai.model.dto.kimi.tools.KimiToolBody;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -15,9 +14,7 @@ import java.util.stream.Collectors;
 @Data
 //@Builder
 @Accessors(chain = true)
-public class KimiChatRequest {
-    String model = KimiModel.MOONSHOT_V1_8K;
-    List<CommonAIMessage> messages;
+public class KimiChatRequest extends KimiBaseRequest {
     Float temperature = 0.3f;
     Float top_p = 1.0f;
     Integer max_tokens = 1024;
@@ -43,5 +40,20 @@ public class KimiChatRequest {
         }
         this.stop = stop;
         return this;
+    }
+
+    @Override
+    public KimiChatRequest setModel(String model) {
+        return (KimiChatRequest) super.setModel(model);
+    }
+
+    @Override
+    public KimiChatRequest setMessages(List<CommonAIMessage> messages) {
+        return (KimiChatRequest) super.setMessages(messages);
+    }
+
+    @Override
+    public KimiChatRequest setTools(List<KimiToolBody> tools) {
+        return (KimiChatRequest) super.setTools(tools);
     }
 }

@@ -18,8 +18,7 @@ import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.config.util.RedisUtilConfig;
 import cn.katool.util.ScheduledTaskUtil;
-import cn.katool.util.classes.SpringContextUtils;
-import cn.katool.util.lock.LockUtil;
+import cn.katool.util.lock.RedisLockUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.*;
@@ -34,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
-import static cn.katool.util.lock.LockUtil.*;
+import static cn.katool.util.lock.RedisLockUtil.*;
 
 /**
  * Redis工具类
@@ -104,7 +103,7 @@ public class RedisUtils<K, V> {
     }
 
     @Resource
-    LockUtil lockUtil;
+    RedisLockUtil redisLockUtil;
 
     private void expMsg(String Msg) {
         if (obtainRedisTemplate() == null) {
@@ -125,7 +124,7 @@ public class RedisUtils<K, V> {
         }
         Long b = -1L;
         try {
-            b = lockUtil.DistributedUnLock(lockObj);
+            b = redisLockUtil.DistributedUnLock(lockObj);
         } catch (KaToolException e) {
             e.printStackTrace();
         }
@@ -138,7 +137,7 @@ public class RedisUtils<K, V> {
     public boolean tryLock(Object lockObj) {
         ThreadUtil.sleep(RandomUtil.randomInt(100,500));
         Thread thread = Thread.currentThread();
-        boolean state = lockUtil.luaToRedisByLock("Lock:" + lockObj.toString(), 30L, TimeUnit.SECONDS, new String[1]) == null;
+        boolean state = redisLockUtil.luaToRedisByLock("Lock:" + lockObj.toString(), 30L, TimeUnit.SECONDS, new String[1]) == null;
         if (state) {
             ScheduledFuture<?> scheduledFuture = ScheduledTaskUtil.submitTask(new Runnable() {
                 @SneakyThrows
@@ -149,7 +148,7 @@ public class RedisUtils<K, V> {
                     ScheduledFuture future = getThreadWatchDog().get(thread.getId());
                     if (alive) {
                         log.debug("Thread ID:{} 线程仍然存活，看门狗续期中...", thread.getId());
-                        lockUtil.delayDistributedLock("tryLock:" + lockObj.toString(), 30L, TimeUnit.SECONDS);
+                        redisLockUtil.delayDistributedLock("tryLock:" + lockObj.toString(), 30L, TimeUnit.SECONDS);
                         return;
                     } else {
                         if (future.isCancelled() || future.isDone()) {
@@ -157,7 +156,7 @@ public class RedisUtils<K, V> {
                             return;
                         }
                         log.debug("Thread ID:{} 线程死亡，看门狗自动解锁", thread.getId());
-                        lockUtil.luaToRedisByUnLock("tryLock:" + lockObj.toString(), Thread.currentThread());
+                        redisLockUtil.luaToRedisByUnLock("tryLock:" + lockObj.toString(), Thread.currentThread());
                         future.cancel(true);
                         return;
                     }
@@ -177,7 +176,7 @@ public class RedisUtils<K, V> {
             }
         }
 //                由于这里有了可重入锁，不应该直接删除Boolean aBoolean = redisTemplate.delete("Lock:" + obj.toString());
-        Long remainLocks = lockUtil.luaToRedisByUnLock("Lock:" + lockObj.toString(), Thread.currentThread());
+        Long remainLocks = redisLockUtil.luaToRedisByUnLock("Lock:" + lockObj.toString(), Thread.currentThread());
         if (null != remainLocks && remainLocks == 0) {
             if (getThreadWatchDog().contains(Thread.currentThread().getId())){
                 getThreadWatchDog().get(Thread.currentThread().getId()).cancel(true);
@@ -189,11 +188,11 @@ public class RedisUtils<K, V> {
     }
 
     public boolean lock(Object lockObj) {
-        return lockUtil.DistributedLock(lockObj, false);
+        return redisLockUtil.DistributedLock(lockObj, false);
     }
 
     public boolean lock(Object lockObj, Boolean isAgress) {
-        return lockUtil.DistributedLock(lockObj, isAgress);
+        return redisLockUtil.DistributedLock(lockObj, isAgress);
     }
 
     public RedisTemplate obtainRedisTemplate() {
