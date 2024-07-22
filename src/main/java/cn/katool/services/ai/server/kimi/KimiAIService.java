@@ -43,11 +43,12 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-@Data
+
 @AllArgsConstructor
 @Accessors(chain = true)
 @Slf4j
 public class KimiAIService implements CommonAIService {
+
 
     public KimiAIService() {
         promptTemplateDrive = new PromptTemplateDrive("");
@@ -65,6 +66,53 @@ public class KimiAIService implements CommonAIService {
     List<CommonAIMessage> history;
 
     ThreadLocal<String> jsonTemplate = new InheritableThreadLocal<>();
+    public KimiAIService setHistory(List<CommonAIMessage> history) {
+        this.history = history;
+        return this;
+    }
+
+    public KimiAIService setJsonTemplate(ThreadLocal<String> jsonTemplate) {
+        this.jsonTemplate = jsonTemplate;
+        return this;
+    }
+
+    public KimiAIService setChatRequest(ThreadLocal<KimiChatRequest> chatRequest) {
+        this.chatRequest = chatRequest;
+        return this;
+    }
+
+    public KimiAIService setCacheHeaders(Map<String, String> cacheHeaders) {
+        this.cacheHeaders = cacheHeaders;
+        return this;
+    }
+
+    public KimiAIService setChatRequest(KimiChatRequest chatRequest) {
+        this.chatRequest.set(chatRequest);
+        return this;
+    }
+
+
+
+    public PromptTemplateDrive getPromptTemplateDrive() {
+        return promptTemplateDrive;
+    }
+
+    public List<CommonAIMessage> getHistory() {
+        return history;
+    }
+
+    public String getJsonTemplate() {
+        return jsonTemplate.get();
+    }
+
+    public ThreadLocal<KimiChatRequest> getChatRequest() {
+        return chatRequest;
+    }
+
+    public Map<String, String> getCacheHeaders() {
+        return cacheHeaders;
+    }
+
     ThreadLocal<KimiChatRequest> chatRequest;
 
     Map<String,String> cacheHeaders = null;
@@ -139,7 +187,6 @@ public class KimiAIService implements CommonAIService {
         return this;
     }
 
-    private static volatile CommonAIMessage lastPrompt;
     private String askAdapter(String msg,boolean usingHistory,boolean returnJson) {
 
         List<CommonAIMessage> messages;
@@ -242,7 +289,7 @@ public class KimiAIService implements CommonAIService {
 
     @Override
     public KimiFileContentResponse getFileContent(String fileId){
-        return KimiBuilder.create().files().id(fileId).build().GET(KimiFileContentResponse.class);
+        return KimiBuilder.create().files().id(fileId).content().build().GET(KimiFileContentResponse.class);
     }
 
     @Override

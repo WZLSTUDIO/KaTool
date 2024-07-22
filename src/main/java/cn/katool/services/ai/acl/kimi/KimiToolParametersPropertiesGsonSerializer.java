@@ -9,9 +9,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.StringJoiner;
 
-public class KimiToolsLanguageEnumGsonSerializer implements JsonSerializer<KimiToolParametersProperties> {
+public class KimiToolParametersPropertiesGsonSerializer implements JsonSerializer<KimiToolParametersProperties> {
 
-    public static final TypeToken KimiToolsLanguageEnumGsonSerializerTypeToken = new TypeToken<KimiToolParametersPropertiesLanguage>() {};
+    public static final TypeToken KimiToolParametersPropertiesGsonSerializerTypeToken = TypeToken.get(KimiToolParametersPropertiesGsonSerializer.class);
 
     private void resolveEnums(JsonObject res, KimiToolParametersPropertiesLanguage kimiToolParametersPropertiesLanguage) {
         JsonObject jsonObject = new JsonObject();

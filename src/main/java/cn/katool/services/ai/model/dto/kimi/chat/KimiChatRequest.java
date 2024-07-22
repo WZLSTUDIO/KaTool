@@ -4,7 +4,9 @@ import cn.katool.services.ai.constant.kimi.KimiResponseFormatEnum;
 import cn.katool.services.ai.model.dto.kimi.base.KimiBaseRequest;
 import cn.katool.services.ai.model.dto.kimi.tools.KimiToolBody;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.nio.charset.StandardCharsets;
@@ -12,7 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-//@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Accessors(chain = true)
 public class KimiChatRequest extends KimiBaseRequest {
     Float temperature = 0.3f;

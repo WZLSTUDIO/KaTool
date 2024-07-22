@@ -7,13 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KimiUsersBuilder extends KimiBuilderBase {
-
+public class KimiDefaultBuilder extends KimiCommonBuilder{
     KimiBuilder kimiBuilder;
-
-    public KimiMeBuilder me(){
-        return this.resolve(kimiBuilder,KimiMeBuilder.class);
-    }
 }
-
-

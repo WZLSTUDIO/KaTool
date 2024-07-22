@@ -5,10 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
-public class KimiBuilderBase extends KimiCommonBuilder{
-    KimiBuilder kimiBuilder;
+
+public class KimiBuilderBase extends KimiDefaultBuilder{
+    public KimiBuilderBase(KimiBuilder kimiBuilder) {
+        super(kimiBuilder);
+    }
+
+    public KimiBuilderBase() {
+    }
+
     public Kimi build() {
         return kimiBuilder.build();
     }

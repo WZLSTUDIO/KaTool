@@ -5,10 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class KimiMeBuilder extends KimiCommonBuilder {
-    KimiBuilder kimiBuilder;
+public class KimiMeBuilder extends KimiDefaultBuilder {
+
+    public KimiMeBuilder(KimiBuilder kimiBuilder) {
+        super(kimiBuilder);
+    }
+
+    public KimiMeBuilder() {
+    }
 
     public KimiBuilderBase balance(){
         KimiBuilder resolve = (KimiBuilder) this.resolve(kimiBuilder);

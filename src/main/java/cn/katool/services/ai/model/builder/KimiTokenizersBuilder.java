@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class KimiTokenizersBuilder extends KimiBuilderBase {
+    public KimiTokenizersBuilder(KimiBuilder kimiBuilder) {
+        super(kimiBuilder);
+    }
 
-    KimiBuilder kimiBuilder;
+    public KimiTokenizersBuilder() {
+    }
 
     private KimiBuilder estimate_token_count(){
         return (KimiBuilder) this.resolve(kimiBuilder);

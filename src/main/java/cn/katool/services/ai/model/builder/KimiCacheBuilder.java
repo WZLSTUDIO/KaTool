@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class KimiCacheBuilder extends KimiCacheBuilderInterface {
 
 
@@ -28,6 +27,6 @@ public class KimiCacheBuilder extends KimiCacheBuilderInterface {
     }
 
     public KimiCacheRefsBuilder refs(){
-        return (KimiCacheRefsBuilder) this.resolve(kimiBuilder);
+        return this.resolve(kimiBuilder,KimiCacheRefsBuilder.class);
     }
 }

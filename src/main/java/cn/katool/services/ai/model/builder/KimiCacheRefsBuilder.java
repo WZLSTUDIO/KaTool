@@ -6,16 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class KimiCacheRefsBuilder extends KimiBuilderBase {
+    public KimiCacheRefsBuilder() {
+    }
 
-    KimiBuilder kimiBuilder;
-
-
+    public KimiCacheRefsBuilder(KimiBuilder kimiBuilder) {
+        super(kimiBuilder);
+    }
 
     public KimiCacheRefsTagsBuilder tags() {
-        return (KimiCacheRefsTagsBuilder) this.resolve(kimiBuilder);
+        return (KimiCacheRefsTagsBuilder) this.resolve(kimiBuilder,KimiCacheRefsTagsBuilder.class);
     }
 
 }

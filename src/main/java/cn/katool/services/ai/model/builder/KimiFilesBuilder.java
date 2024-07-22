@@ -6,16 +6,15 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class KimiFilesBuilder extends KimiBuilderBase{
 
     public KimiFilesBuilder(KimiBuilder kimiBuilder) {
         super(kimiBuilder);
     }
 
-    public KimiBuilderBase id(String cacheId){
+    public KimiFilesContentBuilder id(String cacheId){
         KimiBuilder resBuilder = this.devailParam(kimiBuilder, cacheId);
-        return new KimiBuilderBase(resBuilder);
+        return new KimiFilesContentBuilder(resBuilder);
     }
 
 }

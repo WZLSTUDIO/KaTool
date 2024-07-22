@@ -43,11 +43,10 @@ public class KimiCommonBuilder {
         kimiBuilder.setUrl(url);
         return kimiBuilder;
     }
-
-    protected KimiCommonBuilder resolve(KimiBuilder builder){
+    protected Object resolve(KimiBuilder builder){
         Object invoke = builder;
         try {
-            Method method = KimiBuilder.class.getMethod(Thread.currentThread().getStackTrace()[2].getClassName());
+            Method method = KimiBuilder.class.getDeclaredMethod(Thread.currentThread().getStackTrace()[2].getMethodName());
             method.setAccessible(true);
             invoke = method.invoke(builder);
         } catch (NoSuchMethodException e) {
@@ -57,7 +56,27 @@ public class KimiCommonBuilder {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        return (KimiCommonBuilder) invoke;
+        return invoke;
+    }
+    protected <T extends KimiDefaultBuilder> T resolve(KimiBuilder builder,Class<T> clazz){
+        Object invoke = builder;
+        T t;
+        try {
+            Method method = KimiBuilder.class.getDeclaredMethod(Thread.currentThread().getStackTrace()[2].getMethodName());
+            method.setAccessible(true);
+            invoke = method.invoke(builder);
+            t = clazz.newInstance();
+            t.kimiBuilder = (KimiBuilder) invoke;
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        }
+        return t;
     }
 
 
