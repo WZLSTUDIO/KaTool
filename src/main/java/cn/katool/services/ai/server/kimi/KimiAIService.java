@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.lang.reflect.Type;
+import java.net.Proxy;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -54,26 +55,27 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOtherResponseData,KimiErrorMessage> {
 
+    volatile Proxy proxy = null;
+    volatile String key = null;
+    volatile PromptTemplateDrive promptTemplateDrive;
 
-    PromptTemplateDrive promptTemplateDrive;
-
-    CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>> historyLocalMap = new CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>>() {
+    volatile CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>> historyLocalMap = new CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>>() {
         @Override
         protected ArrayList<CommonAIMessage> initialValue() {
             return new ArrayList<>();
         }
     };;
 
-    CopyOnTransmittableThreadLocal<String> jsonTemplate = new CopyOnTransmittableThreadLocal<String>() {
+    volatile CopyOnTransmittableThreadLocal<String> jsonTemplate = new CopyOnTransmittableThreadLocal<String>() {
         @Override
         protected String initialValue() {
             return "";
         }
 
     };
-    CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest;
+    volatile CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest;
 
-    Map<String,String> cacheHeaders = null;
+    volatile Map<String,String> cacheHeaders = null;
     public KimiAIService() {
         promptTemplateDrive = new PromptTemplateDrive("我是人工智能AI-KIMI，请你对我进行提问，我会给你最准确的回答。");
         this.chatRequest = new CopyOnTransmittableThreadLocal<KimiChatRequest>(){
@@ -110,6 +112,17 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     }
 
 
+    @Override
+    public KimiAIService setProxy(String url, int port) {
+        proxy = new Proxy(java.net.Proxy.Type.HTTP,new java.net.InetSocketAddress(url,port));
+        return this;
+    }
+
+    @Override
+    public KimiAIService auth(String key) {
+        this.key = key;
+        return this;
+    }
 
     public PromptTemplateDrive getPromptTemplateDrive() {
         return promptTemplateDrive;
@@ -228,7 +241,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
             }
         }
         chatRequest.get().setMessages(messages);
-        Kimi kimi = KimiBuilder.create().chat().completions().build();
+        Kimi kimi = KimiBuilder.create().chat().completions().build().auth(key).proxy(proxy);
         // 如果开启缓存，那么放入header
         KimiChatResponse post = Optional
                 .ofNullable(this.getCacheHeaders())
@@ -332,19 +345,19 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     }
     @Override
     public String uploadFile(File file,Consumer<KimiErrorMessage> throwResolve) {
-        KimiFileMeta upload = KimiBuilder.create().files().build().upload(file,throwResolve);
+        KimiFileMeta upload = KimiBuilder.create().files().build().auth(key).proxy(proxy).upload(file,throwResolve);
         return upload.getId();
     }
 
     @Override
     public List<String> uploadFile(List<File> files,Consumer<KimiErrorMessage> throwResolve) {
-        List<KimiFileMeta> kimiFileMetas = KimiBuilder.create().files().build().uploadFiles(files,throwResolve);
+        List<KimiFileMeta> kimiFileMetas = KimiBuilder.create().files().build().auth(key).proxy(proxy).uploadFiles(files,throwResolve);
         return  kimiFileMetas.stream().map(KimiFileMeta::getId).collect(Collectors.toList());
     }
 
     @Override
     public String uploadFile(String filePath,Consumer<KimiErrorMessage> throwResolve) {
-        KimiFileMeta upload = KimiBuilder.create().files().build().upload(HttpUtil.downloadFileFromUrl(filePath,System.getProperty("user.dir")),throwResolve);
+        KimiFileMeta upload = KimiBuilder.create().files().build().auth(key).proxy(proxy).upload(HttpUtil.downloadFileFromUrl(filePath,System.getProperty("user.dir")),throwResolve);
         return upload.getId();
     }
     @Override
@@ -355,32 +368,32 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     }
     @Override
     public KimiBaseResponse<List<KimiFileMeta>> listOfFile(Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().files().build().GET(new TypeToken<KimiBaseResponse<List<KimiFileMeta>>>(){}.getType(),throwResolve);
+        return KimiBuilder.create().files().build().auth(key).proxy(proxy).GET(new TypeToken<KimiBaseResponse<List<KimiFileMeta>>>(){}.getType(),throwResolve);
     }
     @Override
     public KimiFileMeta getFileMeta(String fileId,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().files().id(fileId).build().GET(KimiFileMeta.class,throwResolve);
+        return KimiBuilder.create().files().id(fileId).build().auth(key).proxy(proxy).GET(KimiFileMeta.class,throwResolve);
     }
     @Override
     public KimiDefaultDeleteResponse deleteFile(String fileId,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().files().id(fileId).build().DELETE(KimiDefaultDeleteResponse.class,throwResolve);
+        return KimiBuilder.create().files().id(fileId).build().auth(key).proxy(proxy).DELETE(KimiDefaultDeleteResponse.class,throwResolve);
     }
     @Override
     public KimiFileContentResponse getFileContent(String fileId,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().files().id(fileId).content().build().GET(KimiFileContentResponse.class,throwResolve);
+        return KimiBuilder.create().files().id(fileId).content().build().auth(key).proxy(proxy).GET(KimiFileContentResponse.class,throwResolve);
     }
     @Override
     public Long countToken(){
-        return KimiBuilder.create().tokenizers().estimateTokenCount().build().POST(this.chatRequest.get(), KimiOtherResponse.class,null).getData().getTotal_tokens();
+        return KimiBuilder.create().tokenizers().estimateTokenCount().build().auth(key).proxy(proxy).POST(this.chatRequest.get(), KimiOtherResponse.class,null).getData().getTotal_tokens();
     }
     @Override
     public Long countToken(Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().tokenizers().estimateTokenCount().build().POST(this.chatRequest.get(), KimiOtherResponse.class,throwResolve).getData().getTotal_tokens();
+        return KimiBuilder.create().tokenizers().estimateTokenCount().build().auth(key).proxy(proxy).POST(this.chatRequest.get(), KimiOtherResponse.class,throwResolve).getData().getTotal_tokens();
     }
 
     @Override
     public Long countToken(List<CommonAIMessage> chatRequest,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().tokenizers().estimateTokenCount().build()
+        return KimiBuilder.create().tokenizers().estimateTokenCount().build().auth(key).proxy(proxy)
                 .POST(new KimiChatRequest()
                         .setModel(KimiModel.MOONSHOT_V1_32K)
                         .setMax_tokens(2000000).setMessages(chatRequest),KimiOtherResponse.class,throwResolve).getData().getTotal_tokens();
@@ -392,7 +405,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
 
     @Override
     public KimiOtherResponse.KimiOtherResponseData queryMoney(Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().users().me().balance().build().GET(KimiOtherResponse.class,throwResolve).getData();
+        return KimiBuilder.create().users().me().balance().build().auth(key).proxy(proxy).GET(KimiOtherResponse.class,throwResolve).getData();
     }
 
     @Override
@@ -472,7 +485,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         return applayContextCache(cacheRequest,false,throwResolve);
     }
     public KimiCacheResponse applayContextCache(KimiCacheRequest cacheRequest,boolean isThrow,Consumer<KimiErrorMessage> throwResolve){
-        KimiCacheResponse kimiCacheResponse = KimiBuilder.create().caching().build().POST(cacheRequest, KimiCacheResponse.class,throwResolve);
+        KimiCacheResponse kimiCacheResponse = KimiBuilder.create().caching().build().auth(key).proxy(proxy).POST(cacheRequest, KimiCacheResponse.class,throwResolve);
         if (KimiCacheStatus.ERROR.equals(kimiCacheResponse.getStatus())){
             if (isThrow){
                 throw new KaToolException(ErrorCode.OPER_ERROR, KimiGsonFactory.create().toJson(kimiCacheResponse.getError()));
@@ -497,7 +510,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         if (metadata != null){
             caching.metadata(metadata.getKey(), metadata.getValue());
         }
-        return caching.build().GET(new TypeToken<KimiBaseResponse<List<KimiCacheQueryData>>>(){}.getType(),throwResolve);
+        return caching.build().auth(key).proxy(proxy).GET(new TypeToken<KimiBaseResponse<List<KimiCacheQueryData>>>(){}.getType(),throwResolve);
     }
     public KimiBaseResponse<List<KimiCacheQueryData>> listOfContextCache(Integer limit, Boolean isAsc,Consumer<KimiErrorMessage> throwResolve){
         return listOfContextCache(limit, isAsc, null, null, null,throwResolve);
@@ -510,17 +523,17 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     }
 
     public KimiCacheResponse queryCache(String cacheId,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().id(cacheId).build().GET(KimiCacheResponse.class,throwResolve);
+        return KimiBuilder.create().caching().id(cacheId).build().auth(key).proxy(proxy).GET(KimiCacheResponse.class,throwResolve);
     }
     public KimiDefaultDeleteResponse deleteCache(String cacheId,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().id(cacheId).build().DELETE(KimiDefaultDeleteResponse.class,throwResolve);
+        return KimiBuilder.create().caching().id(cacheId).build().auth(key).proxy(proxy).DELETE(KimiDefaultDeleteResponse.class,throwResolve);
     }
     public KimiCacheResponse reloadCache(KimiCacheUpdateRequest cacheUpdateRequest,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().id(cacheUpdateRequest.getId()).build().PUT(cacheUpdateRequest.getMeta(),KimiCacheResponse.class,throwResolve);
+        return KimiBuilder.create().caching().id(cacheUpdateRequest.getId()).build().auth(key).proxy(proxy).PUT(cacheUpdateRequest.getMeta(),KimiCacheResponse.class,throwResolve);
     }
 
     public KimiCacheTagMeta createCacheTag(String cacheId, String tag,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().refs().tags().build().POST(new KimiCacheTagCreateRequest(tag, cacheId), KimiCacheTagMeta.class,throwResolve);
+        return KimiBuilder.create().caching().refs().tags().build().auth(key).proxy(proxy).POST(new KimiCacheTagCreateRequest(tag, cacheId), KimiCacheTagMeta.class,throwResolve);
     }
 
     public KimiBaseResponse<List<KimiCacheTagMeta>> listOfContextCacheTag(Integer limit, boolean isAsc, String afterId, String beforeId, Pair<String, String> metadata,Consumer<KimiErrorMessage> throwResolve){
@@ -534,7 +547,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         if (StringUtils.isNotBlank(afterId)){
             tags.before(beforeId);
         }
-        return tags.build().GET(new TypeToken<KimiBaseResponse<List<KimiCacheTagMeta>>>(){}.getType(),throwResolve);
+        return tags.build().auth(key).proxy(proxy).GET(new TypeToken<KimiBaseResponse<List<KimiCacheTagMeta>>>(){}.getType(),throwResolve);
     }
     public KimiBaseResponse<List<KimiCacheTagMeta>> listOfContextCacheTag(Integer limit, Boolean isAsc,Consumer<KimiErrorMessage> throwResolve){
         return listOfContextCacheTag(limit, isAsc, null, null, null,throwResolve);
@@ -546,10 +559,10 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         return listOfContextCacheTag(null, null,throwResolve);
     }
     public KimiTagDeleteResponse deleteCacheTag(String tagName,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().refs().tags().tagName(tagName).build().DELETE(KimiTagDeleteResponse.class,throwResolve);
+        return KimiBuilder.create().caching().refs().tags().tagName(tagName).build().auth(key).proxy(proxy).DELETE(KimiTagDeleteResponse.class,throwResolve);
     }
     public KimiCacheTagMeta queryCacheTag(String tagName,Consumer<KimiErrorMessage> throwResolve){
-        return KimiBuilder.create().caching().refs().tags().tagName(tagName).build().GET(KimiCacheTagMeta.class,throwResolve);
+        return KimiBuilder.create().caching().refs().tags().tagName(tagName).build().auth(key).proxy(proxy).GET(KimiCacheTagMeta.class,throwResolve);
     }
 
 

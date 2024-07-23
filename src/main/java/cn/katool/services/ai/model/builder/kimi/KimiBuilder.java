@@ -90,14 +90,7 @@ public class KimiBuilder extends KimiCommonBuilder{
             return  solveStepWithMethodName();
         }
         public Kimi build(){
-            this.master = this.status;
-            this.status = KimiBuilderEnum.END;
-            return new Kimi(this,KimiConfig.KIMI_API_KEY,new TransmittableThreadLocal<String>(){
-                @Override
-                protected String childValue(String parentValue) {
-                    return "application/json";
-                }
-            });
+            return build(KimiConfig.KIMI_API_KEY);
         }
         public Kimi build(String kimiApiKey){
             this.master = this.status;

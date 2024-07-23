@@ -16,6 +16,10 @@ import java.util.function.Consumer;
 
 public interface CommonAIService<M extends AiQueryMoneyResponse,E extends ErrorMessage> {
 
+    CommonAIService setProxy(String url,int port);
+
+    CommonAIService auth(String key);
+
 
     PromptTemplateDrive getPromptTemplateDrive();
 

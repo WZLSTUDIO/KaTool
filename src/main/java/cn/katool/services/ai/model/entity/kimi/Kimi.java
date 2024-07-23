@@ -3,6 +3,7 @@ package cn.katool.services.ai.model.entity.kimi;
 import cn.hutool.http.*;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
+import cn.katool.config.ai.kimi.KimiProxyConfig;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
 import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
@@ -16,8 +17,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.lang.reflect.Type;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -29,17 +33,20 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class Kimi{
 
-    KimiBuilder kimiBuilder;
 
-    String key;
+    volatile KimiBuilder kimiBuilder;
 
-    TransmittableThreadLocal<String> contentType = new TransmittableThreadLocal<String>(){
+    volatile String key;
+
+    volatile Proxy proxy;
+
+    volatile TransmittableThreadLocal<String> contentType = new TransmittableThreadLocal<String>(){
         @Override
         protected String initialValue() {
             return "application/json";
         }
     };
-    TransmittableThreadLocal<String> responseResultTempStorage = new TransmittableThreadLocal<String>(){
+    volatile TransmittableThreadLocal<String> responseResultTempStorage = new TransmittableThreadLocal<String>(){
         @Override
         protected String initialValue() {
             return "{}";
@@ -52,6 +59,13 @@ public class Kimi{
         this.contentType = contentType;
     }
 
+    public Kimi proxy(Proxy proxy){
+        if (null == proxy){
+            return this;
+        }
+        this.proxy = proxy;
+        return this;
+    }
     private void validUnLegal(KimiBuilderEnum kimiBuilderEnum) {
         if (this.getKimiBuilder().getMaster().equals(kimiBuilderEnum)){
             throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
@@ -65,6 +79,9 @@ public class Kimi{
     }
 
     public Kimi auth(String key){
+        if (StringUtils.isBlank(key)){
+            return this;
+        }
         this.key = key;
         return this;
     }
@@ -78,6 +95,12 @@ public class Kimi{
             throw new KaToolException(ErrorCode.OPER_ERROR,"kimi-key is null");
         }
         HttpRequest request = HttpUtil.createRequest(method,kimiBuilder.getUrl().toString());
+         if (KimiProxyConfig.ENABLE){
+            request.setProxy(new Proxy(Proxy.Type.HTTP,InetSocketAddress.createUnresolved(KimiProxyConfig.HOST,KimiProxyConfig.PORT)));
+        }
+        if (this.proxy !=null ){
+            request.setProxy(this.proxy);
+        }
         request.contentType(this.contentType.get())
                 .header(Header.AUTHORIZATION,"Bearer " + key);
         return request;

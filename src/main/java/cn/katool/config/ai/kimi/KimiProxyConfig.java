@@ -20,18 +20,24 @@ import java.util.HashMap;
 @AllArgsConstructor
 @NoArgsConstructor
 @ComponentScan("cn.katool.*")
-@Configuration("KimiConfig")
-@ConfigurationProperties("katool.util.ai.kimi")
-public class KimiConfig {
-    public static final String KIMI_BASE_URL = "https://api.moonshot.cn/v1";
-    public static String KIMI_API_KEY = "";
+@Configuration("KimiProxyConfig")
+@ConfigurationProperties("katool.util.ai.kimi.proxy")
+public class KimiProxyConfig {
 
+    public static Boolean ENABLE = false;
+    public static String HOST = "127.0.0.1";
+    public static Integer PORT = 80;
 
-    public String key = "";
+    Boolean enable;
+    String host;
+    Integer port;
 
     @Bean
-    public void KimiConfigInit(){
-        log.info("KimiConfigInit");
-        KIMI_API_KEY = key;
+    public void KimiProxyConfigInit(){
+        ENABLE = enable;
+        HOST = host;
+        PORT = port;
     }
+
+
 }
