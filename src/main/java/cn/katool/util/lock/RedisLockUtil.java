@@ -7,9 +7,7 @@
  * @date: 2023/1/4 0:17
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.util.lock;
-
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -26,15 +24,12 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.LockSupport;
-
 import static cn.katool.util.lock.LockMessageWatchDog.LOCK_MQ_NAME;
 import static cn.katool.util.lock.LockMessageWatchDog.threadWaitQueue;
-
 @Slf4j
 public class RedisLockUtil {
         @Resource
@@ -66,18 +61,14 @@ public class RedisLockUtil {
                 "    end\n" +
                 " return nil\n")
         private String unLockScript;
-
         @Value("    if redis.call('exists',KEYS[1]) ~= 0 then\n" +
                 "       local lessTime = redis.call('pttl',KEYS[1]);\n" +
                 "       redis.call('pexpire',KEYS[1],ARGV[1]);\n" +                            //如果锁存在
                 "    end\n" +
                 "    return redis.call('pttl',KEYS[1]);" )
         private String delayLockScript;
-
         public String serviceUUid=RandomUtil.randomString(16);
-
         private volatile static boolean isOpenCorn=false;
-
         /**
          * 带看门狗机制上锁
          * @param lockObj
@@ -92,7 +83,6 @@ public class RedisLockUtil {
         }
         @Resource
         LockConfig lockConfig;
-
         //加锁
         public Long luaToRedisByLock(String lockName,Long expTime,TimeUnit timeUnit,String[] hashkey){
                 long id = Thread.currentThread().getId();
@@ -114,7 +104,6 @@ public class RedisLockUtil {
                 }
                 return execute;
         }
-
         //释放锁
         @Transactional
         public Long luaToRedisByUnLock(String lockName,Thread thread){
@@ -139,7 +128,6 @@ public class RedisLockUtil {
                 }
                 return remainLocks;
         }
-
         public Boolean luaToRedisByDelay(String lockName,Long expTimeInc,TimeUnit timeUnit){
                 long id = Thread.currentThread().getId();
                 DefaultRedisScript defaultRedisScript = new DefaultRedisScript();
@@ -153,8 +141,6 @@ public class RedisLockUtil {
                 Long execute = (Long) redisTemplate.execute(defaultRedisScript, keys, args.toArray());
                 return execute>expire;
         }
-
-
         /**
          * @param obj
          * @param exptime
@@ -223,7 +209,6 @@ public class RedisLockUtil {
                                 @SneakyThrows
                                 @Override
                                 public void run() {
-
                                         boolean alive = thread.isAlive()||thread.isInterrupted();
                                         ScheduledFuture future = threadWatchDog.get(thread.getId());
                                         if (alive) {
@@ -247,11 +232,9 @@ public class RedisLockUtil {
                 return BooleanUtil.isTrue(aLong!=null);
         }
         private static ConcurrentHashMap<Long,ScheduledFuture> threadWatchDog=new ConcurrentHashMap<>();
-
         public static ConcurrentHashMap<Long, ScheduledFuture> getThreadWatchDog() {
                 return threadWatchDog;
         }
-
         //延期
         public boolean delayDistributedLock(Object obj,Long exptime,TimeUnit timeUnit) throws KaToolException {
                 if (ObjectUtils.isEmpty(obj)){
@@ -267,7 +250,6 @@ public class RedisLockUtil {
                 Long remainLocks = DistributedUnLock(obj, null);
                 return remainLocks;
         }
-
         public Long DistributedUnLock(Object obj,Thread thread) throws KaToolException {
                 if (ObjectUtils.isEmpty(obj)){
                         throw new KaToolException(ErrorCode.PARAMS_ERROR," Lock =>  传入obj为空");
@@ -292,14 +274,9 @@ public class RedisLockUtil {
                         return redisLockUtil;
                 }
         }
-
         public static RedisLockUtil getInstance(){
                 return SingletonFactory.Singleton.redisLockUtil;
         }
-
         private RedisLockUtil(){
-
         }
-
-
 }

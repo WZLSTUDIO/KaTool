@@ -7,7 +7,6 @@
  * @date: 2022/12/13 21:55
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.store.impl.qiniu;
 import cn.katool.Exception.KaToolException;
 import cn.katool.util.io.FileUtils;
@@ -24,37 +23,28 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.InputStream;
-
 @Data
 @Service("Store-QiNiuYun")
 @Slf4j
 public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
-
     @Autowired
     private UploadManager uploadManager;
-
     @Autowired
     private BucketManager bucketManager;
-
     @Autowired
     private Auth auth;
-
     @Value("${katool.qiniu.bucket:\"your bucket-name\"}")
     private String bucket;
-
     @Value("${katool.qiniu.domain:\"your domain\"}")
     private String domain;
     @Value("${katool.qiniu.basedir:\"/katool\"}")
     private String basedir;
-
     /**
      * 定义七牛云上传的相关策略
      */
     private StringMap putPolicy;
-
     @Override
     public String getOriginName(String URL) {
         int endpos = URL.lastIndexOf("?datestamp");
@@ -62,7 +52,6 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         String originName = URL.substring(beginpos+1, endpos);
         return originName;
     }
-
     @Override
     public boolean isExist(String dir,String fileName){
         File tempFile = FileUtils.createTempFile();
@@ -81,12 +70,10 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         }
         return false;
     }
-
     @Override
     public boolean isExist(String dir,String fileName_fast, String fileName_second){
         return isExist(dir,fileName_fast+fileName_second);
     }
-
     /**
      *
      * @param file
@@ -100,7 +87,6 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         String fileName = fileName_fast + fileName_second;
         return uploadFile(file,dir,fileName,isCompulsion);
     }
-
     @Override
     public String uploadFile(File file, String dir,String fileName,boolean isCompulsion) throws Exception {
         if (isCompulsion){
@@ -137,19 +123,15 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         }
         return "上传失败!";
     }
-
     @Override
     public String getUrlByName(String fileName) {
         return getDomain()+fileName;
     }
-
-
     @Override
     public String uploadFile(InputStream inputStream, String dir,String fileName_fast, String fileName_second,boolean isCompulsion) throws Exception {
         String fileName = fileName_fast + fileName_second;
         return uploadFile(inputStream,dir,fileName,isCompulsion);
     }
-
     @Override
     public String uploadFile(InputStream inputStream, String dir,String fileName,boolean isCompulsion) throws Exception {
         if (isCompulsion){
@@ -186,7 +168,6 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         }
         return "上传失败!";
     }
-
     /**
      *
      * @param fileName   文件名
@@ -216,24 +197,20 @@ public class QiNiuYunServiceImpl implements IQiNiuYunService, InitializingBean {
         }
         return response.statusCode == 200 ? "删除成功!" : "删除失败!";
     }
-
     @Override
     public String delete(String dir,String fileName_fast, String fileName_second) throws QiniuException {
         String fileName=fileName_fast+fileName_second;
         return delete(dir,fileName);
     }
-
     @Override
     public void afterPropertiesSet() throws Exception {
         this.putPolicy = new StringMap();
         putPolicy.put("returnBody", "{\"key\":\"$(key)\",\"hash\":\"$(etag)\",\"bucket\":\"$(bucket)\",\"width\":$(imageInfo.width), \"height\":${imageInfo.height}}");
     }
-
     /**
      * 获取上传凭证
      */
     private String getUploadToken() {
         return this.auth.uploadToken(bucket, null, 3600, putPolicy);
     }
-
 }

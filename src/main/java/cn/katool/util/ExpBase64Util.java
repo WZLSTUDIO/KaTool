@@ -7,15 +7,11 @@
  * @date: 2023/2/9 1:12
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.util;
-
 import org.springframework.util.Base64Utils;
-
 public class ExpBase64Util extends Base64Utils {
     //Base64 code regular judgment expression
     private static final String BASE64_PATTERN = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$";
-
     /**
      * To determine whether a string is a base64 expression, you can use the Base64 header
      *

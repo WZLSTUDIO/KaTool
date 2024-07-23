@@ -7,14 +7,10 @@
  * @date: 2022/12/18 22:41
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.util.verify;
-
 import org.springframework.stereotype.Component;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.StringJoiner;
-
 @Component
 public class IPUtils {
     /**
@@ -35,7 +31,6 @@ public class IPUtils {
         }
         return ip;
     }
-
     /**
      * IP地址合法性校验
      */

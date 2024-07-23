@@ -1,5 +1,4 @@
 package cn.katool.util.lock;
-
 import cn.hutool.core.util.ObjectUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -11,19 +10,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.LockSupport;
-
 @Component
 @Slf4j
 public class LockMessageWatchDog implements MessageListener {
     public static volatile ConcurrentHashMap<String,ConcurrentLinkedQueue<Thread>> threadWaitQueue=new ConcurrentHashMap<>();;
     public static final String LOCK_MQ_NAME = "LOCK:RELASE:QUEUE";
-
-
-
     @SneakyThrows
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -46,9 +40,7 @@ public class LockMessageWatchDog implements MessageListener {
                 LockSupport.unpark(peek);   // 竞争到后会自行删除
 //            }
     }
-
     //表示监听一个频道
-
     @Bean
     @DependsOn({"KaTool-Init"})
     public RedisMessageListenerContainer container(RedisConnectionFactory factory) {
@@ -57,6 +49,4 @@ public class LockMessageWatchDog implements MessageListener {
         container.addMessageListener(this, new ChannelTopic(LOCK_MQ_NAME));
         return container;
     }
-
-
 }

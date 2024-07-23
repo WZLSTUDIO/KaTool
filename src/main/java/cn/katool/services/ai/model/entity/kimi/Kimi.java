@@ -1,5 +1,4 @@
 package cn.katool.services.ai.model.entity.kimi;
-
 import cn.hutool.http.*;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
@@ -15,8 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-
 import javax.annotation.Resource;
 import java.io.File;
 import java.lang.reflect.Type;
@@ -26,20 +23,14 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 @Slf4j
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Kimi{
-
-
     volatile KimiBuilder kimiBuilder;
-
     volatile String key;
-
     volatile Proxy proxy;
-
     volatile TransmittableThreadLocal<String> contentType = new TransmittableThreadLocal<String>(){
         @Override
         protected String initialValue() {
@@ -52,13 +43,11 @@ public class Kimi{
             return "{}";
         }
     };
-
     public Kimi(KimiBuilder kimiBuilder, String key, TransmittableThreadLocal<String> contentType) {
         this.kimiBuilder = kimiBuilder;
         this.key = key;
         this.contentType = contentType;
     }
-
     public Kimi proxy(Proxy proxy){
         if (null == proxy){
             return this;
@@ -71,13 +60,11 @@ public class Kimi{
             throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
         }
     }
-
     private void validLegal(KimiBuilderEnum kimiBuilderEnum) {
         if (!this.getKimiBuilder().getMaster().equals(kimiBuilderEnum)){
             throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
         }
     }
-
     public Kimi auth(String key){
         if (StringUtils.isBlank(key)){
             return this;
@@ -85,7 +72,6 @@ public class Kimi{
         this.key = key;
         return this;
     }
-
     public Kimi contentType(String type){
         this.contentType.set(type);
         return this;
@@ -122,7 +108,6 @@ public class Kimi{
         T res = KimiGsonFactory.create().fromJson(resJson, TypeToken.get(responseClass).getType());
         return res;
     }
-
     public <T,R> R POST(T request,Type responseClass,Consumer<KimiErrorMessage> throwResolve){
         validUnLegal(KimiBuilderEnum.FILES);
         HttpRequest post = this.getRequest(Method.POST).body(KimiGsonFactory.create().toJson(request));
@@ -136,7 +121,6 @@ public class Kimi{
         HttpRequest request = this.getRequest(Method.DELETE);
         return detailRequest(request, responseClass,throwResolve);
     }
-
     public <T,R> R PUT(T request,Type responseClass,Consumer<KimiErrorMessage> throwResolve){
         HttpRequest put = this.getRequest(Method.PUT).body(KimiGsonFactory.create().toJson(request));
         return detailRequest(put,responseClass,throwResolve);
@@ -153,7 +137,6 @@ public class Kimi{
     public <T,R> R PUT(T request,Class<R> responseClass,Consumer<KimiErrorMessage> throwResolve){
         return PUT(request,(Type)responseClass,throwResolve);
     }
-
     public <T,R> R REQUEST(Method httpMethod,T request,Class<R> responseClass,Map<String,String>headers,Consumer<KimiErrorMessage> throwResolve){
         HttpRequest req = this.getRequest(httpMethod);
         Optional.ofNullable(headers).ifPresent(req::addHeaders);
@@ -165,7 +148,6 @@ public class Kimi{
     public <T,R> R REQUEST(Method httpMethod,T request,Class<R> responseClass,Consumer<KimiErrorMessage> throwResolve){
         return REQUEST(httpMethod,request,responseClass,null,throwResolve);
     }
-
     public KimiFileMeta upload(File file,Consumer<KimiErrorMessage> throwResolve){
         validLegal(KimiBuilderEnum.FILES);
         this.contentType("multipart/form-data");
@@ -174,8 +156,6 @@ public class Kimi{
         post.form("file", file);
         return detailRequest(post,KimiFileMeta.class,throwResolve);
     };
-
-
     public List<KimiFileMeta> uploadFiles(List<File> files,Consumer<KimiErrorMessage> throwResolve) {
         validLegal(KimiBuilderEnum.FILES);
         this.contentType("multipart/form-data");
@@ -195,7 +175,6 @@ public class Kimi{
     public List<KimiFileMeta> uploadFiles(List<File> files){
         return uploadFiles(files,null);
     };
-
     public <T> T anlayseResponse(String json, TypeToken<T> kimiChatResponseTypeToken) {
         return KimiGsonFactory.create().fromJson(json,kimiChatResponseTypeToken.getType());
     }

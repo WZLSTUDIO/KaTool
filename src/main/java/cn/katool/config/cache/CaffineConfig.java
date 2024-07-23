@@ -1,5 +1,4 @@
 package cn.katool.config.cache;
-
 import cn.katool.util.cache.policy.CachePolicy;
 import cn.katool.util.cache.utils.CaffeineUtils;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -12,21 +11,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
-
 @Slf4j
 @Component
 @Data
 @ConfigurationProperties("katool.util.cache.caffeine")
 public class CaffineConfig {
-
-
     Boolean  enable = false;
-
-
     @DependsOn("katool-cache")
     @Bean("katool-caffine-cache")
     @ConditionalOnExpression("${katool.cache.caffeine.enable:false}.equals('true')")

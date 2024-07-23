@@ -1,5 +1,4 @@
 package cn.katool.services.ai.model.builder.kimi;
-
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.config.ai.kimi.KimiConfig;
@@ -10,36 +9,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
-
 import java.util.Locale;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class KimiBuilder extends KimiCommonBuilder{
         private String url;
-
         private KimiBuilderEnum master;
-
         private KimiBuilderEnum status;
-
-
         public KimiBuilder(String url, KimiBuilderEnum status) {
             this.url = url;
             this.status = status;
         }
-
         public static KimiBuilder create(){
             return new KimiBuilder(KimiConfig.KIMI_BASE_URL,KimiBuilderEnum.BASE);
         }
-
         private void validStatus(KimiBuilderEnum target){
             if (!target.getLastStatus().contains(this.status)){
                 throw new KaToolException(ErrorCode.OPER_ERROR,
                         "current status is " + status.getName()+", but target status's father status is" +  target.getLastStatus());
             }
         }
-
         private KimiBuilder solveStepWithMethodName(){
             KimiBuilder kimiBuilder = KimiBuilder.create();
             BeanUtils.copyProperties(this, kimiBuilder);
@@ -56,18 +46,15 @@ public class KimiBuilder extends KimiCommonBuilder{
         public KimiCacheBuilder caching(){
             return new KimiCacheBuilder(solveStepWithMethodName());
         }
-
         private KimiCacheRefsBuilder refs(){
             return new KimiCacheRefsBuilder(solveStepWithMethodName());
         }
-
         private KimiCacheRefsTagsBuilder tags(){
             return new KimiCacheRefsTagsBuilder(solveStepWithMethodName());
         }
         private KimiBuilder completions(){
             return solveStepWithMethodName();
         }
-
         private KimiBuilder content(){
             return solveStepWithMethodName();
         }
@@ -102,6 +89,4 @@ public class KimiBuilder extends KimiCommonBuilder{
                 }
             });
         }
-
-
     }

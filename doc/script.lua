@@ -19,7 +19,6 @@ function lock()
     -- 如果Lock不存在，那么就直接加上就可以了，hhh
     return nil;
 end
-
 -- 续期       呃呃呃，这里不用lua也可以
 function destribe()
     if redis.call("hexists",KEYS[1],ARGV[1]) ~= 0 then
@@ -27,7 +26,6 @@ function destribe()
     end
     return nil;
 end
-
 --解锁
 function unlock()
 --    解锁的逻辑和加锁相似

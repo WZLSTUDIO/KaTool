@@ -7,21 +7,15 @@
  * @date: 2022/12/15 21:28
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.util.io;
-
-
 import cn.hutool.core.img.ImgUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
-
 import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-
-
 @Component
 public class ImageUtils {
     /**
@@ -45,7 +39,6 @@ public class ImageUtils {
         fos.close();
         return tempFile;
     }
-    
     public static String img2base64(File image) throws IOException {
         FileInputStream fis= new FileInputStream(image);
         byte b[]=new byte[(int) image.length()];
@@ -53,7 +46,6 @@ public class ImageUtils {
         String encode = new String(Base64Utils.encode(b));
         return encode;
     }
-
     /**
      * 将图片放到输出流对象
      * @param src

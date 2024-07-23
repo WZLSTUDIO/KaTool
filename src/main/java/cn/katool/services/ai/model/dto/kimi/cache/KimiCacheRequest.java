@@ -1,13 +1,10 @@
 package cn.katool.services.ai.model.dto.kimi.cache;
-
 import cn.katool.services.ai.model.dto.kimi.base.KimiBaseRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-
 import java.util.HashMap;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

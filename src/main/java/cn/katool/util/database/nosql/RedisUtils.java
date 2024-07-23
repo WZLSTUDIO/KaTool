@@ -7,10 +7,7 @@
  * @date: 2023/3/23 9:31
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.util.database.nosql;
-
-
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -23,7 +20,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.*;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -32,9 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
 import static cn.katool.util.lock.RedisLockUtil.*;
-
 /**
  * Redis工具类
  */
@@ -42,11 +36,9 @@ import static cn.katool.util.lock.RedisLockUtil.*;
 public class RedisUtils<K, V> {
     @Resource
     private RedisTemplate<K, V> redisTemplate;
-
     @Resource
     RedisUtilConfig redisUtilConfig;
     private static ThreadLocal<Boolean> threadLocal = new ThreadLocal<>();
-
     public Object doUnCache(Supplier supplier){
         boolean status = false;
         String policy = null;
@@ -66,8 +58,6 @@ public class RedisUtils<K, V> {
         }
         return res;
     }
-
-
     public Boolean onfCacheInThread(Boolean flag){
         if ("default".equals(redisUtilConfig.getPolicy())){
             throw new KaToolException(ErrorCode.PARAMS_ERROR,"请检查是否开启Redis多级缓存策略");
@@ -76,7 +66,6 @@ public class RedisUtils<K, V> {
         threadLocal.set(flag);
         return threadLocal.get().equals(flag);
     }
-
     public Boolean getOnfCacheInThread(){
         if ("default".equals(redisUtilConfig.getPolicy())){
             throw new KaToolException(ErrorCode.PARAMS_ERROR,"请检查是否开启Redis多级缓存策略");
@@ -88,23 +77,17 @@ public class RedisUtils<K, V> {
         }
         return aBoolean;
     }
-
-
     private RedisUtils() {
     }
-
     private RedisUtils(RedisTemplate restemp) {
         gaveRedisTemplate(restemp);
     }
-
     public RedisTemplate gaveRedisTemplate(RedisTemplate restemp) {
         redisTemplate = restemp;
         return redisTemplate;
     }
-
     @Resource
     RedisLockUtil redisLockUtil;
-
     private void expMsg(String Msg) {
         if (obtainRedisTemplate() == null) {
             throw new RuntimeException("请先设置RedisTemplate，RedisUtil中已有setRedistemplate()方法");
@@ -117,7 +100,6 @@ public class RedisUtils<K, V> {
         throw new RuntimeException("\t" + stackTrace[1].getClassName() + "." + stackTrace[1].getMethodName() + "()方法抛出异常 --" + Msg + "\n" +
                 "\t\t\tthrow posation:\t\t" + stackTrace[2].getClassName() + "." + stackTrace[2].getMethodName() + " 第" + stackTrace[2].getLineNumber() + "行");
     }
-
     public boolean unlock(Object lockObj) {
         if (lockObj == null) {
             expMsg("没有上锁");
@@ -133,7 +115,6 @@ public class RedisUtils<K, V> {
         }
         return (b + 1) <= 1;//防止出现精度丢失问题
     }
-
     public boolean tryLock(Object lockObj) {
         ThreadUtil.sleep(RandomUtil.randomInt(100,500));
         Thread thread = Thread.currentThread();
@@ -143,7 +124,6 @@ public class RedisUtils<K, V> {
                 @SneakyThrows
                 @Override
                 public void run() {
-
                     boolean alive = thread.isAlive() || (thread.isInterrupted());
                     ScheduledFuture future = getThreadWatchDog().get(thread.getId());
                     if (alive) {
@@ -166,7 +146,6 @@ public class RedisUtils<K, V> {
         }
         return state;
     }
-
     public boolean unTryLock(Object lockObj) {
         if (ObjectUtils.isEmpty(lockObj)) {
             try {
@@ -186,19 +165,15 @@ public class RedisUtils<K, V> {
         log.debug("katool=> LockUntil => unDistributedLock:{} isdelete:{} watchDog is cancel and drop", lockObj.toString(), true);
         return remainLocks == 0;
     }
-
     public boolean lock(Object lockObj) {
         return redisLockUtil.DistributedLock(lockObj, false);
     }
-
     public boolean lock(Object lockObj, Boolean isAgress) {
         return redisLockUtil.DistributedLock(lockObj, isAgress);
     }
-
     public RedisTemplate obtainRedisTemplate() {
         return redisTemplate;
     }
-
     public Boolean setValue(K hashKey, V value, Long timeOut, TimeUnit timeUnit) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -209,7 +184,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public Boolean setValue(K hashKey, V value) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -220,7 +194,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public Boolean remove(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -228,7 +201,6 @@ public class RedisUtils<K, V> {
         Boolean delete = redisTemplate.delete(hashKey);
         return delete;
     }
-
     public List getZSet(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -237,7 +209,6 @@ public class RedisUtils<K, V> {
         Set range = boundZSetOperations.range(0, boundZSetOperations.size());
         return Arrays.asList(range.toArray());
     }
-
     public List getZSetAsync(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -265,7 +236,6 @@ public class RedisUtils<K, V> {
         }
         return list;
     }
-
     public List getZSetByRange(K hashKey, Long start, Long end) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -277,7 +247,6 @@ public class RedisUtils<K, V> {
         Set range = boundZSetOperations.range(start, end);
         return Arrays.asList(range.toArray());
     }
-
     public Set<ZSetOperations.TypedTuple> getZSetWithScores(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -286,7 +255,6 @@ public class RedisUtils<K, V> {
         Set<ZSetOperations.TypedTuple> range = boundZSetOperations.rangeWithScores(0, boundZSetOperations.size());
         return range;
     }
-
     public Boolean putZSet(K hashKey, V value, Double score) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -301,7 +269,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public Boolean putZSet(K hashKey, Set<ZSetOperations.TypedTuple<V>> set) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -322,14 +289,12 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public Set getSet(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
         }
         return redisTemplate.boundSetOps(hashKey).members();
     }
-
     public Boolean putSet(K hashKey, V value) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -344,8 +309,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
-
     public Boolean putSet(K hashKey, Set<V> set) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -364,7 +327,6 @@ public class RedisUtils<K, V> {
         });
         return isOk.get();
     }
-
     public Boolean putSet(K hashKey, V... value) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -382,7 +344,6 @@ public class RedisUtils<K, V> {
         });
         return isOk.get();
     }
-
     public Boolean pushMap(K hashKey, Map map) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -396,7 +357,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public <H extends K, HK, HV> Boolean pushMap(H hashKey, HK key, HV value) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -422,7 +382,6 @@ public class RedisUtils<K, V> {
         }
         return true;
     }
-
     public Map getMap(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -432,28 +391,24 @@ public class RedisUtils<K, V> {
         }
         return null;
     }
-
     public Object getValue(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
         }
         return redisTemplate.opsForValue().get(hashKey);
     }
-
     public Object getMap(K hashKey, Object key) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
         }
         return redisTemplate.opsForHash().get(hashKey, key);
     }
-
     public List getList(K hashKey) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
         }
         return redisTemplate.opsForList().range(hashKey, 0, -1);
     }
-
     public Boolean pushList(K hashKey, V object) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -474,7 +429,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public Boolean pushListLeft(K hashKey, V object) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -493,7 +447,6 @@ public class RedisUtils<K, V> {
         }
         return false;
     }
-
     public List leftPopList(K hashKey, Long count) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -504,7 +457,6 @@ public class RedisUtils<K, V> {
         List<V> list = redisTemplate.opsForList().leftPop(hashKey, count);
         return list;
     }
-
     public List rightPopList(K hashKey, Long count) {
         if (obtainRedisTemplate() == null) {
             expMsg(null);
@@ -515,27 +467,22 @@ public class RedisUtils<K, V> {
         List<V> list = redisTemplate.opsForList().leftPop(hashKey, count);
         return list;
     }
-
     //利用枚举类实现单例模式，枚举类属性为静态的
     private enum SingletonFactory {
         Singleton;
         RedisUtils redisUtils;
-
         private SingletonFactory() {
             redisUtils = new RedisUtils();
         }
-
         public RedisUtils getInstance() {
             return redisUtils;
         }
     }
-
     public static RedisUtils getInstance(RedisTemplate redisTemplate) {
         RedisUtils instance = SingletonFactory.Singleton.getInstance();
         instance.gaveRedisTemplate(redisTemplate);
         return instance;
     }
-
     public static RedisUtils getInstance() {
         RedisUtils instance = SingletonFactory.Singleton.getInstance();
         return instance;

@@ -3,5 +3,3 @@ spring:
         name: Katool
     banner:
         location: banner.ini
-
-

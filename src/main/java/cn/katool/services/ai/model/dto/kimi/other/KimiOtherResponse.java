@@ -1,10 +1,8 @@
 package cn.katool.services.ai.model.dto.kimi.other;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +21,4 @@ public class KimiOtherResponse {
         Double voucher_balance;
         Double cash_balance;
     }
-
 }
-
-

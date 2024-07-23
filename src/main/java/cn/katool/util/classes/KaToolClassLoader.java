@@ -1,24 +1,18 @@
 package cn.katool.util.classes;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-
 public class KaToolClassLoader extends ClassLoader{
     private String classPath;
-
-
     //    F:/demo1/
     //    完整路径为：F:/demo1/server/MyServlet.class
     public KaToolClassLoader(String classPath){
         this.classPath = classPath;
     }
-
     public KaToolClassLoader(String classPath, ClassLoader privateLoader){
         super(privateLoader);
         this.classPath = classPath;
     }
-
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         byte[] bytes;
@@ -29,18 +23,15 @@ public class KaToolClassLoader extends ClassLoader{
             clazz = defineClass(name, bytes, 0, bytes.length);
             return clazz;
         }catch (Exception e){
-
         }
         return super.findClass(name);
     }
-
     private byte[] getClassByte(String name){
         name = name.replaceAll("\\.","/");
         String realPath = this.classPath+name+".class";
         File f = new File(realPath);
         if(f.exists()){
             byte[] bytes = new byte[0];
-
             try {
                 FileInputStream fis = new FileInputStream(f);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

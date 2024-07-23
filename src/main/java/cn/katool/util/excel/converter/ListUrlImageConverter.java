@@ -1,5 +1,4 @@
 package cn.katool.util.excel.converter;
-
 import com.alibaba.excel.converters.Converter;
 import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.metadata.GlobalConfiguration;
@@ -9,7 +8,6 @@ import com.alibaba.excel.metadata.property.ExcelContentProperty;
 import com.alibaba.excel.util.IoUtils;
 import com.alibaba.excel.util.ListUtils;
 import org.springframework.util.ObjectUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,17 +15,12 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import static com.alibaba.excel.converters.url.UrlImageConverter.urlConnectTimeout;
 import static com.alibaba.excel.converters.url.UrlImageConverter.urlReadTimeout;
-
-
 //extends UrlImageConverter
 public class ListUrlImageConverter implements  Converter<List<URL>>{
-
     private InputStream convertToInputStream(URL value){
         InputStream inputStream = null;
-
         try {
             URLConnection urlConnection = value.openConnection();
             urlConnection.setConnectTimeout(urlConnectTimeout);
@@ -39,9 +32,7 @@ public class ListUrlImageConverter implements  Converter<List<URL>>{
         }finally {
             return inputStream;
         }
-
     }
-
     @Override
     public WriteCellData<?> convertToExcelData(List<URL> value, ExcelContentProperty contentProperty, GlobalConfiguration globalConfiguration) throws IOException {
         if (ObjectUtils.isEmpty(value)){
@@ -71,7 +62,6 @@ public class ListUrlImageConverter implements  Converter<List<URL>>{
         res.setStringValue("　");
         return res;
     }
-
     public ArrayList<ImageData> convertValueToExcelData(List<URL> value){
         if (ObjectUtils.isEmpty(value)){
             return null;
@@ -101,5 +91,4 @@ public class ListUrlImageConverter implements  Converter<List<URL>>{
         }
         return imageDataList;
     }
-
 }

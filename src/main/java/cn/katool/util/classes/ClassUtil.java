@@ -1,12 +1,10 @@
 package cn.katool.util.classes;
-
 import cn.hutool.extra.spring.SpringUtil;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
@@ -14,15 +12,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Objects;
-
 @Slf4j
 @Component
 public class ClassUtil{
     // 尝试编译次数
     Integer tryLimit=3;
-
     ThreadLocal<Integer> threadLocal=new ThreadLocal();
-
     public Class urlLoader(String url, String className){
         Class clazz = null;
         String resouceUrl = url.replace(
@@ -70,9 +65,6 @@ public class ClassUtil{
         }
         return clazz;
     }
-
-
-
     public Pair<Boolean,String> complieClass(String souceCodeFilePath,String className){
         if (new File(souceCodeFilePath+"\\"+className+".java").exists()&&new File(souceCodeFilePath+"\\"+className+".class").exists()){
             return new Pair<>(true,"it is had complied");
@@ -107,7 +99,6 @@ public class ClassUtil{
                 Thread.sleep(5000L);
             }
             if (null!=call && true == call){
-
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -127,16 +118,13 @@ public class ClassUtil{
         }
         return classTemp;
     }
-
     public Class loader(String className) {
         Class<?> classTemp;
-
         try {
             classTemp=ClassLoader.getSystemClassLoader().loadClass(className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-
         return classTemp;
     }
 }

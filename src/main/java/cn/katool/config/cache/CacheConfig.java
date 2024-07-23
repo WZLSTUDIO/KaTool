@@ -1,5 +1,4 @@
 package cn.katool.config.cache;
-
 import cn.katool.util.ExpDateUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -14,12 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
-
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 @Slf4j
 @Data
 @AllArgsConstructor
@@ -28,29 +25,21 @@ import java.util.function.Supplier;
 @Configuration("CacheConfig")
 @ConfigurationProperties("katool.util.cache")
 public class CacheConfig {
-
     public static final String CAFFEINE = "caffeine";
     public static final String EHCACHE = "ehcache";
-
     private Long expTime = 5*60*1000L;
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-
     private Integer maxCacheSize = 100000;
-
     @Value("${katool.cache.ehcache.enable-to-disk:false}")
     private Boolean  enableEhCacheToDisk = false;
-
     /**
      * 策略
      */
     private String policy="default";
-
     private static HashMap<String, Supplier> CACHE_POLICY_MAPPER = new HashMap<>();
-
     public static HashMap<String, Supplier> getCACHE_POLICY_MAPPER() {
         return CACHE_POLICY_MAPPER;
     }
-
     @Bean("katool-cache")
     @DependsOn({"KaTool-Init"})
     @ConditionalOnMissingBean({Cache.class,CacheManager.class})
@@ -60,7 +49,6 @@ public class CacheConfig {
     public static Object getCache(String policy) {
         return CACHE_POLICY_MAPPER.getOrDefault(policy,CACHE_POLICY_MAPPER.get("default")).get();
     }
-
     {
         log.info("【KaTool::Bean Factory】katool-CacheConfig-cache => 初始化预备缓存策略【{}】","CACHE_POLICY_MAPPER");
         CACHE_POLICY_MAPPER.put("caffeine",()->{

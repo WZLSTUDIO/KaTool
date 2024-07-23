@@ -1,11 +1,8 @@
 package cn.katool.store;
-
 import cn.katool.Exception.KaToolException;
 import com.qiniu.common.QiniuException;
-
 import java.io.File;
 import java.io.InputStream;
-
 public interface StoreService {
     String getOriginName(String URL);
     /**
@@ -14,7 +11,6 @@ public interface StoreService {
      * @param fileName  文件名
      */
     boolean isExist(String dir,String fileName) throws KaToolException;
-
     /**
      * 判断文件是否存在
      * @param dir   上传目录
@@ -22,7 +18,6 @@ public interface StoreService {
      * @param fileName_second   文件后缀名。如:.txt
      */
     boolean isExist(String dir,String fileName_fast, String fileName_second) throws KaToolException;
-
     /**
      * 以文件的形式上传
      *
@@ -35,7 +30,6 @@ public interface StoreService {
      * @throws QiniuException 上传异常
      */
     String uploadFile(File file, String dir, String fileName_fast, String fileName_second, boolean isCompulsion) throws Exception;
-
     /**
      * 以文件的形式上传
      * @param file      文件
@@ -46,7 +40,6 @@ public interface StoreService {
      */
     String uploadFile(File file, String dir,String fileName,boolean isCompulsion) throws Exception;
     String getUrlByName(String fileName);
-
     /**
      * 以流的形式上传
      *
@@ -59,7 +52,6 @@ public interface StoreService {
      * @throws QiniuException 上传异常
      */
     String uploadFile(InputStream inputStream, String dir, String fileName_fast, String fileName_second, boolean isCompulsion) throws Exception;
-
     /**
      * 以流的形式上传
      *
@@ -71,7 +63,6 @@ public interface StoreService {
      * @throws QiniuException 上传异常
      */
     String uploadFile(InputStream inputStream, String dir,String fileName,boolean isCompulsion) throws Exception;
-
     /**
      * 删除文件
      *
@@ -88,5 +79,4 @@ public interface StoreService {
      * @return java.lang.String
      */
     String delete(String dir,String fileName_fast, String fileName_second)throws QiniuException;
-
 }

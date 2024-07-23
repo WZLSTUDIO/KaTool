@@ -1,18 +1,13 @@
 package cn.katool.services.ai.model.builder.kimi;
-
 public class KimiCacheBuilderInterface extends KimiBuilderBase {
-
-
     public KimiCacheBuilderInterface limit(Integer limit){
         this.devailArgAtrWithMethodName(kimiBuilder, limit);
         return this;
     }
-
     public KimiCacheBuilderInterface order(boolean isAsc){
         this.devailArgAtrWithMethodName(kimiBuilder, isAsc ?"asc" : "desc");
         return this;
     }
-
     public KimiCacheBuilderInterface after(String idOrTag){
         this.devailArgAtrWithMethodName(kimiBuilder, idOrTag);
         return this;
@@ -21,5 +16,4 @@ public class KimiCacheBuilderInterface extends KimiBuilderBase {
         this.devailArgAtrWithMethodName(kimiBuilder, idOrTag);
         return this;
     }
-
 }

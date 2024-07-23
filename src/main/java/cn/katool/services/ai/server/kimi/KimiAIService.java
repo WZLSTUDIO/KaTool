@@ -1,5 +1,4 @@
 package cn.katool.services.ai.server.kimi;
-
 import ch.qos.logback.classic.util.CopyOnInheritThreadLocal;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpUtil;
@@ -40,7 +39,6 @@ import cn.hutool.core.lang.Pair;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.lang.reflect.Type;
 import java.net.Proxy;
@@ -48,38 +46,30 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-
 @AllArgsConstructor
 @Accessors(chain = true)
 @Slf4j
 public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOtherResponseData,KimiErrorMessage> {
-
     volatile Proxy proxy = null;
     volatile String key = null;
     volatile PromptTemplateDrive promptTemplateDrive;
-
     volatile CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>> historyLocalMap = new CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>>() {
         @Override
         protected ArrayList<CommonAIMessage> initialValue() {
             return new ArrayList<>();
         }
     };;
-
     volatile CopyOnTransmittableThreadLocal<String> jsonTemplate = new CopyOnTransmittableThreadLocal<String>() {
         @Override
         protected String initialValue() {
             return "";
         }
-
     };
     volatile CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest;
-
     volatile Map<String,String> cacheHeaders = null;
     public KimiAIService() {
         promptTemplateDrive = new PromptTemplateDrive("我是人工智能AI-KIMI，请你对我进行提问，我会给你最准确的回答。");
         this.chatRequest = new CopyOnTransmittableThreadLocal<KimiChatRequest>(){
-
             @Override
             protected KimiChatRequest initialValue() {
                 return new KimiChatRequest();
@@ -90,68 +80,51 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         this.historyLocalMap.set(historyLocalMap);
         return this;
     }
-
     public KimiAIService setJsonTemplate(CopyOnTransmittableThreadLocal<String> jsonTemplate) {
         this.jsonTemplate = jsonTemplate;
         return this;
     }
-
     public KimiAIService setChatRequest(CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest) {
         this.chatRequest = chatRequest;
         return this;
     }
-
     public KimiAIService setCacheHeaders(Map<String, String> cacheHeaders) {
         this.cacheHeaders = cacheHeaders;
         return this;
     }
-
     public KimiAIService setChatRequest(KimiChatRequest chatRequest) {
         this.chatRequest.set(chatRequest);
         return this;
     }
-
-
     @Override
     public KimiAIService setProxy(String url, int port) {
         proxy = new Proxy(java.net.Proxy.Type.HTTP,new java.net.InetSocketAddress(url,port));
         return this;
     }
-
     @Override
     public KimiAIService auth(String key) {
         this.key = key;
         return this;
     }
-
     public PromptTemplateDrive getPromptTemplateDrive() {
         return promptTemplateDrive;
     }
-
     public ArrayList<CommonAIMessage> getHistory() {
         return historyLocalMap.get();
     }
-
     public String getJsonTemplate() {
         return jsonTemplate.get();
     }
-
     public CopyOnTransmittableThreadLocal<KimiChatRequest> getChatRequest() {
         return chatRequest;
     }
-
     public Map<String, String> getCacheHeaders() {
         return cacheHeaders;
     }
-
-
-
-
     public KimiAIService(PromptTemplateDrive promptTemplateDrive) {
         this.promptTemplateDrive = promptTemplateDrive;
         this.getHistory().add(promptTemplateDrive.generateTemplate());
     }
-
     public KimiAIService openContextCacheMode(String cacheId,Integer dryRun,Integer resetTTL){
         KimiAIService result = new KimiAIService();
         BeanUtil.copyProperties(this,result);
@@ -168,7 +141,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         result.setCacheHeaders(null);
         return result;
     }
-
     public KimiAIService useCacheTag(String tagName,Integer dryRun,Integer resetTTl){
         KimiAIService kimiAIService = new KimiAIService();
         BeanUtil.copyProperties(this, kimiAIService);
@@ -186,25 +158,21 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         this.promptTemplateDrive = promptTemplateDrive;
         return this;
     }
-
     @Override
     public CommonAIService setJsonTemplate(String jsonTemplate) {
         this.jsonTemplate.set(jsonTemplate);
         return this;
     }
-
     @Override
     public CommonAIService setJsonTemplate(Object dao) {
         this.jsonTemplate.set(new Gson().toJson(dao));
         return this;
     }
-
     @Override
     public CommonAIService claerHistory() {
         this.getHistory().clear();
         return this;
     }
-
     @Override
     public KimiAIService reload(PromptTemplateDrive drive) {
         this.claerHistory();
@@ -212,36 +180,28 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         this.getHistory().add(promptTemplateDrive.generateTemplate());
         return this;
     }
-
     public Proxy getProxy() {
         return proxy;
     }
-
     public KimiAIService setProxy(Proxy proxy) {
         this.proxy = proxy;
         return this;
     }
-
     public String getKey() {
         return key;
     }
-
     public KimiAIService setKey(String key) {
         this.key = key;
         return this;
     }
-
     public Map<String, Function<Map<String, String>, String>> getKimiFunctionDriverMap() {
         return kimiFunctionDriverMap;
     }
-
     public KimiAIService setKimiFunctionDriverMap(Map<String, Function<Map<String, String>, String>> kimiFunctionDriverMap) {
         this.kimiFunctionDriverMap = kimiFunctionDriverMap;
         return this;
     }
-
     private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap, Consumer<KimiErrorMessage> throwResolve) {
-
         ArrayList<CommonAIMessage> messages;
         KimiChatRequest request = Optional.ofNullable(kimiFunctionDriverMap)
                 .map(v->this.getChatRequest().get())
@@ -258,7 +218,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         else {
             request.setResponse_format(KimiResponseFormatEnum.TEXT);
         }
-
         // 如果不使用历史记录
         // tips: 使用历史记录的条件：开启历史记录，开启上下文缓存使用，如果有ToolCalls，或者msg为空，那么强制使用历史记录
         if (!usingHistory && null != msg) {
@@ -320,9 +279,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         }
         return message.getContent();
     }
-
-
-
     public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
         return askAdapter(msg,true,false,kimiFunctionDriverMap,throwResolve);
     }
@@ -353,7 +309,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
         return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,null), type);
     }
-
     public String askWithContextInNet(String msg,Consumer<KimiErrorMessage> throwResolve) {
         return askAdapter(msg,true,false,kimiFunctionDriverMap,throwResolve);
     }
@@ -393,7 +348,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         return askWithContextInNet(msg,null,throwResolve);
     }
     Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap = null;
-
     @Override
     public String askBackJson(String msg, Consumer<KimiErrorMessage> throwResolve) {
         return askBackJsonInNet(msg,null,throwResolve);
@@ -419,13 +373,11 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         KimiFileMeta upload = KimiBuilder.create().files().build().auth(key).proxy(proxy).upload(file,throwResolve);
         return upload.getId();
     }
-
     @Override
     public List<String> uploadFile(List<File> files,Consumer<KimiErrorMessage> throwResolve) {
         List<KimiFileMeta> kimiFileMetas = KimiBuilder.create().files().build().auth(key).proxy(proxy).uploadFiles(files,throwResolve);
         return  kimiFileMetas.stream().map(KimiFileMeta::getId).collect(Collectors.toList());
     }
-
     @Override
     public String uploadFile(String filePath,Consumer<KimiErrorMessage> throwResolve) {
         KimiFileMeta upload = KimiBuilder.create().files().build().auth(key).proxy(proxy).upload(HttpUtil.downloadFileFromUrl(filePath,System.getProperty("user.dir")),throwResolve);
@@ -461,7 +413,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public Long countToken(Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().tokenizers().estimateTokenCount().build().auth(key).proxy(proxy).POST(this.chatRequest.get(), KimiOtherResponse.class,throwResolve).getData().getTotal_tokens();
     }
-
     @Override
     public Long countToken(List<CommonAIMessage> chatRequest,Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().tokenizers().estimateTokenCount().build().auth(key).proxy(proxy)
@@ -473,85 +424,66 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public Long countToken(List<CommonAIMessage> chatRequest){
         return countToken(chatRequest,null);
     }
-
     @Override
     public KimiOtherResponse.KimiOtherResponseData queryMoney(Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().users().me().balance().build().auth(key).proxy(proxy).GET(KimiOtherResponse.class,throwResolve).getData();
     }
-
     @Override
     public String ask(String msg) {
         return ask(msg,null);
     }
-
     @Override
     public String askWithContext(String msg) {
         return askWithContext(msg,null);
     }
-
     @Override
     public String askBackJson(String msg) {
         return askBackJson(msg,null);
     }
-
     @Override
     public String askWithContextBackJson(String msg) {
         return askWithContextBackJson(msg);
     }
-
     @Override
     public Object askBackDao(String msg, Type type) {
         return askBackDao(msg,type,null);
     }
-
-
-
     @Override
     public String uploadFile(File file) {
         return uploadFile(file,null);
     }
-
     @Override
     public List<String> uploadFile(List<File> files) {
         return uploadFile(files,null);
     }
-
     @Override
     public String uploadFile(String filePath) {
         return uploadFile(filePath,null);
     }
-
     @Override
     public List<String> uploadFileOfUrls(List<String> filePaths) {
         return uploadFileOfUrls(filePaths,null);
     }
-
     @Override
     public KimiBaseResponse<List<KimiFileMeta>> listOfFile(){
         return listOfFile(null);
     }
-
     @Override
     public KimiFileMeta getFileMeta(String fileId){
         return getFileMeta(fileId,null);
     }
-
     @Override
     public KimiDefaultDeleteResponse deleteFile(String fileId){
         return deleteFile(fileId,null);
     }
-
     @Override
     public KimiFileContentResponse getFileContent(String fileId){
         return getFileContent(fileId,null);
     }
-
-
     @Override
     public KimiOtherResponse.KimiOtherResponseData queryMoney(){
         return queryMoney(null);
     }
-
     public KimiCacheResponse applayContextCache(KimiCacheRequest cacheRequest,Consumer<KimiErrorMessage> throwResolve){
         return applayContextCache(cacheRequest,false,throwResolve);
     }
@@ -592,7 +524,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiBaseResponse<List<KimiCacheQueryData>> listOfContextCache(Consumer<KimiErrorMessage> throwResolve){
         return listOfContextCache(null, null,throwResolve);
     }
-
     public KimiCacheResponse queryCache(String cacheId,Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().caching().id(cacheId).build().auth(key).proxy(proxy).GET(KimiCacheResponse.class,throwResolve);
     }
@@ -602,11 +533,9 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiCacheResponse reloadCache(KimiCacheUpdateRequest cacheUpdateRequest,Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().caching().id(cacheUpdateRequest.getId()).build().auth(key).proxy(proxy).PUT(cacheUpdateRequest.getMeta(),KimiCacheResponse.class,throwResolve);
     }
-
     public KimiCacheTagMeta createCacheTag(String cacheId, String tag,Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().caching().refs().tags().build().auth(key).proxy(proxy).POST(new KimiCacheTagCreateRequest(tag, cacheId), KimiCacheTagMeta.class,throwResolve);
     }
-
     public KimiBaseResponse<List<KimiCacheTagMeta>> listOfContextCacheTag(Integer limit, boolean isAsc, String afterId, String beforeId, Pair<String, String> metadata,Consumer<KimiErrorMessage> throwResolve){
         KimiCacheRefsTagsBuilder tags = KimiBuilder.create().caching().refs().tags();
         limit = Optional.ofNullable(limit).orElse(20);
@@ -635,8 +564,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiCacheTagMeta queryCacheTag(String tagName,Consumer<KimiErrorMessage> throwResolve){
         return KimiBuilder.create().caching().refs().tags().tagName(tagName).build().auth(key).proxy(proxy).GET(KimiCacheTagMeta.class,throwResolve);
     }
-
-
     public KimiCacheResponse applayContextCache(KimiCacheRequest cacheRequest){
         return applayContextCache(cacheRequest, null);
     }
@@ -655,7 +582,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiBaseResponse<List<KimiCacheQueryData>> listOfContextCache(){
         return listOfContextCache(null, null);
     }
-
     public KimiCacheResponse queryCache(String cacheId){
         return queryCache(cacheId,null);
     }
@@ -665,11 +591,9 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiCacheResponse reloadCache(KimiCacheUpdateRequest cacheUpdateRequest){
         return reloadCache(cacheUpdateRequest,null);
     }
-
     public KimiCacheTagMeta createCacheTag(String cacheId, String tag){
         return createCacheTag(cacheId, tag,null);
     }
-
     public KimiBaseResponse<List<KimiCacheTagMeta>> listOfContextCacheTag(Integer limit, boolean isAsc, String afterId, String beforeId, Pair<String, String> metadata){
         return listOfContextCacheTag(limit, isAsc, afterId, beforeId, metadata,null);
     }
@@ -688,7 +612,6 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public KimiCacheTagMeta queryCacheTag(String tagName){
         return queryCacheTag(tagName,null);
     }
-
     public KimiAIService end(){
         this.chatRequest.remove();
         this.historyLocalMap.remove();

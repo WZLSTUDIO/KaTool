@@ -1,6 +1,4 @@
 package cn.katool.util.database.nosql.interceptor;
-
-
 import cn.hutool.core.lang.func.Supplier2;
 import cn.katool.config.util.RedisUtilConfig;
 import cn.katool.util.cache.policy.CachePolicy;
@@ -20,33 +18,25 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 @Aspect
 @Component
 @Slf4j
 public class RedisUtilsInterceptor {
-
     @Resource
     private CachePolicy cachePolicy;
-
     @Resource
     private RedisUtils redisUtils;
-
     @Resource
     RedisUtilConfig config;
-
-
     public CachePolicy getCachePolicy() {
         return this.cachePolicy;
     }
-
     public void setCachePolicy(CachePolicy cachePolicy) {
         this.cachePolicy = cachePolicy;
     }
@@ -59,7 +49,6 @@ public class RedisUtilsInterceptor {
         }
         return true;
     }
-
     public Object AroundWithWriteLock(ProceedingJoinPoint joinPoint, Function<Boolean,Object> run) throws Throwable {
         Boolean casePolicy = casePolicy();
         List<Object> args = Arrays.asList(joinPoint.getArgs());
@@ -73,7 +62,6 @@ public class RedisUtilsInterceptor {
         }
         return o;
     }
-
     public Object AroundWithReadLock(ProceedingJoinPoint joinPoint, Function<Boolean,Object> run) throws Throwable {
         Boolean casePolicy = casePolicy();
         List<Object> args = Arrays.asList(joinPoint.getArgs());
@@ -87,7 +75,6 @@ public class RedisUtilsInterceptor {
         }
         return o;
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.get*(*))||execution(* cn.katool.util.database.nosql.RedisUtils.get*(*,*))")
     public Object aroundByGet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
@@ -120,7 +107,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.leftPopList(*,*))")
     public Object aroundByLeftPopGet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
@@ -128,7 +114,6 @@ public class RedisUtilsInterceptor {
             @Override
             public Object apply(Boolean casePolicy) {
                 List<Object> args = Arrays.asList(joinPoint.getArgs());
-
                 String key = args.get(0).toString();
                 Long cont = (Long) args.get(1);
                 // 如果不采取内存缓存策略，那么直接走Redis
@@ -176,7 +161,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.getZSetByRange(..))")
     public Object aroundByGetByRange(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
@@ -184,7 +168,6 @@ public class RedisUtilsInterceptor {
             @SneakyThrows
             public Object apply(Boolean casePolicy) {
                 List<Object> args = Arrays.asList(joinPoint.getArgs());
-
                 String key = args.get(0).toString();
                 Long start = (Long) args.get(1);
                 Long end = (Long) args.get(2);
@@ -192,7 +175,6 @@ public class RedisUtilsInterceptor {
                 if (!casePolicy) {
                     return RedisUtilsInterceptor.this.aroundByGetResponse(joinPoint);
                 }
-
                 log.debug("【KaTool::RedisUtil::AOP】RedisUtil-CachePolicy  =>  {}: 命中内存缓存，key:{}", joinPoint.getSignature().getName(), key);
                 Map<Object, Double> entries = (Map<Object, Double>) cachePolicy.get(key);
                 if (ObjectUtils.isEmpty(entries)) {
@@ -208,7 +190,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.remove(..))")
     public Object aroundByRemove(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
@@ -230,12 +211,10 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     private Object aroundByRemoveResponse(ProceedingJoinPoint joinPoint) throws Throwable {
         Object proceed = joinPoint.proceed();
         return proceed;
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.set*(..)) ||" +
             " execution(* cn.katool.util.database.nosql.RedisUtils.put*(*,*)) ||" +
             " execution(* cn.katool.util.database.nosql.RedisUtils.push*(*,*))")
@@ -255,7 +234,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.push*(*,*,*))")
     public Object aroundByPush(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
@@ -283,7 +261,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.delMap(*,*))")
     public Object aroundByHRemove(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
@@ -307,9 +284,7 @@ public class RedisUtilsInterceptor {
                 return res;
             }
         });
-
     }
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.putZSet(*,*,Double))")
     public Object aroundByPutZsetByScore(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
@@ -356,10 +331,8 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
     @Resource
     TransactionTemplate transactionTemplate;
-
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.putZSet(*,*))")
     public Object aroundByPutZSet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
@@ -402,13 +375,10 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-
-
     private Object aroundBySETResponse(ProceedingJoinPoint joinPoint) throws Throwable  {
         Object proceed = joinPoint.proceed();
         return proceed;
     }
-
     public Object aroundByGetResponse(ProceedingJoinPoint joinPoint) throws Throwable {
         Object proceed = joinPoint.proceed();
         if (casePolicy()&&!ObjectUtils.isEmpty(proceed)){
@@ -428,5 +398,4 @@ public class RedisUtilsInterceptor {
         }
         return proceed;
     }
-
 }

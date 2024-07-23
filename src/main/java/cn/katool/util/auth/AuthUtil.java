@@ -1,17 +1,14 @@
 package cn.katool.util.auth;
-
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
-
 import cn.katool.constant.AuthConstant;
 import io.netty.util.internal.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.ObjectUtils;
-
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -19,30 +16,23 @@ import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 @Slf4j
 @Data
 public class AuthUtil<T> {
-
     static long EXPIRE_TIME;
     static String SALT_KEY;
-
     public static long getExpireTime() {
         return EXPIRE_TIME;
     }
-
     public static void setExpireTime(long expireTime) {
         EXPIRE_TIME = expireTime;
     }
-
     public static String getSaltKey() {
         return SALT_KEY;
     }
-
     public static void setSaltKey(String saltKey) {
         SALT_KEY = saltKey;
     }
-
     public static String getToken(HttpServletRequest request){
         if (ObjectUtils.isEmpty(request)){
             throw new RuntimeException("【KaTool::AuthUtil::getToken】request is null");
@@ -80,7 +70,6 @@ public class AuthUtil<T> {
         log.debug("【KaTool::AuthUtil::createToken】token.header payload end and generate Token begin:{},{},{},{}",header,payload,SALT_KEY,payloadObj);
         // 生成Token
         String token = JWTUtil.createToken(header, payload, SALT_KEY.getBytes());
-
         log.debug("【KaTool::AuthUtil::createToken】PayLoad:[{}] 生成Token成功！\n" +
                 "过期时间为：【{}】\n" +
                 "header：\n" +
@@ -89,10 +78,8 @@ public class AuthUtil<T> {
                 "【{}】\n" +
                 "Token为：\n" +
                 "【{}】", payloadObj,expireDate,header, payload,token);
-
         return token;
     }
-
     public static String createToken(Object payloadObj) {
         // 构建header
         log.debug("【KaTool::AuthUtil::createToken】token.header create begin:{}",payloadObj);
@@ -109,7 +96,6 @@ public class AuthUtil<T> {
         log.debug("【KaTool::AuthUtil::createToken】token.header payload end and generate Token begin:{},{},{},{}",header,payload,SALT_KEY,payloadObj);
         // 生成Token
         String token = JWTUtil.createToken(header, payload, SALT_KEY.getBytes());
-
         log.debug("\n【KaTool::AuthUtil::createToken】PayLoad:[{}] 生成Token成功！\n" +
                 "过期时间为：【{}】\n" +
                 "header：\n" +
@@ -118,10 +104,8 @@ public class AuthUtil<T> {
                 "【{}】\n" +
                 "Token为：\n" +
                 "【{}】", payloadObj,expireDate,header, payload,token);
-
         return token;
     }
-
     /**
      * 校验Token是否有效
      * @param token Token
@@ -143,7 +127,6 @@ public class AuthUtil<T> {
         }
         return true;
     }
-
     /**
      * 判断Token是否已过期
      * @param token Token
@@ -158,7 +141,6 @@ public class AuthUtil<T> {
         log.debug("【KaTool::AuthUtil::isExpired】expTime:{} , Now:{} , isBefore:{}",expTime,currentTime,isBefore);
         return isBefore;
     }
-
     /**
      * 解析Token返回PayLoad对象
      * @param token Token
@@ -175,7 +157,6 @@ public class AuthUtil<T> {
         }
         return body;
     }
-
     public T getPayLoadFromToken(String token) {
         if (!verifyToken(token)){
             return null;
@@ -189,7 +170,6 @@ public class AuthUtil<T> {
         }
         return body;
     }
-
     public static <T> T getPayLoadByToken(String token) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (!verifyToken(token)){
             return null;

@@ -1,15 +1,11 @@
 package cn.katool.util;
-
 import cn.hutool.cron.CronUtil;
-
 import java.sql.Time;
 import java.util.concurrent.*;
-
 public class ScheduledTaskUtil {
     private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(500,
             Executors.defaultThreadFactory(),
             new ThreadPoolExecutor.CallerRunsPolicy());
-
     public static ScheduledFuture<?> submitTask(Runnable run, long delay, TimeUnit timeUnit){
         ScheduledFuture<?> schedule = executor.scheduleWithFixedDelay(run, 0,delay, timeUnit);
         return schedule;
@@ -24,7 +20,6 @@ public class ScheduledTaskUtil {
         }, 0,delay, timeUnit);
         return schedule;
     }
-
     public static ScheduledFuture<?> submitTask(Runnable run,long initdeay, long delay, TimeUnit timeUnit){
         ScheduledFuture<?> schedule = executor.scheduleWithFixedDelay(run, initdeay,delay, timeUnit);
         return schedule;

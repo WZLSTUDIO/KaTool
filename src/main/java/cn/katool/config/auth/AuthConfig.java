@@ -1,5 +1,4 @@
 package cn.katool.config.auth;
-
 import cn.katool.config.common.KaToolInit;
 import cn.katool.constant.AuthConstant;
 import cn.katool.util.auth.AuthUtil;
@@ -11,7 +10,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
 @Slf4j
 @Data
 @AllArgsConstructor
@@ -22,9 +20,7 @@ import org.springframework.context.annotation.Configuration;
 public class AuthConfig{
     private long expTime = 3600 * 24 * 7 * 1000;
     private String saltKey =  "katool.salt.version::" + KaToolInit.version;
-
     private String tokenHeader="Authorization";
-
     @Bean
     public void initAuthUtils(){
         AuthUtil.setExpireTime(getExpTime());

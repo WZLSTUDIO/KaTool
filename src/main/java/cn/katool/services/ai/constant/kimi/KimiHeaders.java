@@ -1,5 +1,4 @@
 package cn.katool.services.ai.constant.kimi;
-
 public interface KimiHeaders {
     /**
      * Headers 名称	Headers 说明
@@ -10,5 +9,4 @@ public interface KimiHeaders {
     String Msh_Context_Cache_Id = "Msh-Context-Cache-Id";
     String Msh_Context_Cache_Token_Saved = "Msh-Context-Cache-Token-Saved";
     String Msh_Context_Cache_Token_Exp = "Msh-Context-Cache-Token-Exp";
-
 }

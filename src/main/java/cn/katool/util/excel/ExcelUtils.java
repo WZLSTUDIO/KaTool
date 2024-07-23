@@ -1,17 +1,14 @@
 package cn.katool.util.excel;
-
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.write.builder.ExcelWriterBuilder;
 import com.alibaba.excel.write.merge.OnceAbsoluteMergeStrategy;
 import org.apache.commons.collections4.CollectionUtils;
-
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
 public class ExcelUtils {
     public ByteArrayOutputStream convert(List<String> heads, List data, String sheetName,
                                          List<List<String>> changeColList, List<HashMap<Integer, Integer>> mergeRowMapList,
@@ -52,7 +49,6 @@ public class ExcelUtils {
                         }
                     });
                 }
-
             }
         }
         List<List<String>> header = heads.stream().map(v -> {
@@ -68,8 +64,6 @@ public class ExcelUtils {
         write.head(header).sheet(sheetName).doWrite(data);
         return out;
     }
-
-
     public ByteArrayOutputStream convert(Class clazz, List data, String sheetName,
                                          List<List<String>> changeColList, List<HashMap<Integer, Integer>> mergeRowMapList,
                                          List<List<String>> changeRowList, List<HashMap<Integer, Integer>> mergeColMapList)     {
@@ -109,7 +103,6 @@ public class ExcelUtils {
                         }
                     });
                 }
-
             }
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -120,7 +113,6 @@ public class ExcelUtils {
         write.head(clazz).sheet(sheetName).doWrite(data);
         return out;
     }
-
     public void convert(List<String> heads, List data, String sheetName, OutputStream out,
                         List<List<String>> changeColList, List<HashMap<Integer, Integer>> mergeRowMapList,
                         List<List<String>> changeRowList, List<HashMap<Integer, Integer>> mergeColMapList) {
@@ -160,7 +152,6 @@ public class ExcelUtils {
                         }
                     });
                 }
-
             }
         }
         List<List<String>> header = heads.stream().map(v -> {
@@ -174,8 +165,6 @@ public class ExcelUtils {
         });
         write.head(header).sheet(sheetName).doWrite(data);
     }
-
-
     public void convert(Class clazz, List data, String sheetName, OutputStream out,
                         List<List<String>> changeColList, List<HashMap<Integer, Integer>> mergeRowMapList,
                         List<List<String>> changeRowList, List<HashMap<Integer, Integer>> mergeColMapList) {
@@ -215,7 +204,6 @@ public class ExcelUtils {
                         }
                     });
                 }
-
             }
         }
         ExcelWriterBuilder write = EasyExcel.write(out);

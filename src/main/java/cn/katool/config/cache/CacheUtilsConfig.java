@@ -1,5 +1,4 @@
 package cn.katool.config.cache;
-
 import cn.katool.util.cache.policy.CachePolicy;
 import cn.katool.util.cache.utils.CaffeineUtils;
 import cn.katool.util.cache.utils.EhCacheUtils;
@@ -14,22 +13,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
-
 @Slf4j
 @Component
 @DependsOn({"katool-cache"})
 public class CacheUtilsConfig {
-
     @Resource
     CacheConfig cacheConfig;
-
     @Resource(name = "katool-cache")
     Object cache;
-
     @Bean("CaffeineUtils")
     @DependsOn({"katool-cache"})
     @ConditionalOnMissingBean({CaffeineUtils.class, CachePolicy.class})
@@ -47,7 +41,6 @@ public class CacheUtilsConfig {
         }
         return new CaffeineUtils<String,Object>((Cache<String,Object>)innterCache);
     }
-
     @Bean("EhCacheUtils")
     @DependsOn({"katool-cache"})
     @ConditionalOnMissingBean({EhCacheUtils.class, CachePolicy.class})

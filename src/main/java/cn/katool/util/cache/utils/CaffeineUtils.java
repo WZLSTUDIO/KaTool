@@ -1,41 +1,26 @@
 package cn.katool.util.cache.utils;
-
-
 import com.github.benmanes.caffeine.cache.Cache;
-
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-
-
-
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Slf4j
 public class CaffeineUtils<K,V> {
-
     @NotNull
     private Cache<K,V> cache;
-
-
-
     public Cache getCache() {
         return this.cache;
     }
-
     // =================================================================
     // 获取缓存
-
     /**
      * 依据key获取value, 如果未找到, 返回null
      *
@@ -45,7 +30,6 @@ public class CaffeineUtils<K,V> {
         // 就是相当于cache.getIfPresent(key)
         return cache.asMap().get(key);
     }
-
     /**
      * 依据key获取value, 如果未找到, 返回null
      *
@@ -55,7 +39,6 @@ public class CaffeineUtils<K,V> {
         // 就是相当于get(key)
         return cache.getIfPresent(key);
     }
-
     /**
      * 批量依据key获取value
      *
@@ -65,7 +48,6 @@ public class CaffeineUtils<K,V> {
         //
         return cache.getAllPresent(key);
     }
-
     /**
      * 得到缓存Map
      *
@@ -74,10 +56,8 @@ public class CaffeineUtils<K,V> {
     public ConcurrentMap<K, V> get() {
         return cache.asMap();
     }
-
     // =================================================================
     // 插入,修改缓存
-
     /**
      * 插入一个缓存
      *
@@ -88,7 +68,6 @@ public class CaffeineUtils<K,V> {
         //
         cache.put(key, value);
     }
-
     /**
      * 插入缓存,如果不存在，则将value放入缓存
      *
@@ -99,7 +78,6 @@ public class CaffeineUtils<K,V> {
         //
         return cache.get(key, k -> value);
     }
-
     /**
      * 将一个map插入或修改缓存
      */
@@ -107,7 +85,6 @@ public class CaffeineUtils<K,V> {
         //
         cache.asMap().putAll(map);
     }
-
     /**
      * 更新一个指定key的缓存
      *
@@ -118,10 +95,8 @@ public class CaffeineUtils<K,V> {
         //
         cache.put(key, value);
     }
-
     // =================================================================
     // 判断缓存
-
     /**
      * 是否含有指定key的缓存
      *
@@ -131,10 +106,8 @@ public class CaffeineUtils<K,V> {
         //
         return cache.asMap().containsKey(key);
     }
-
     // =================================================================
     // 删除缓存
-
     /**
      * 删除指定key的缓存
      *
@@ -144,7 +117,6 @@ public class CaffeineUtils<K,V> {
         //
         cache.asMap().remove(key);
     }
-
     /**
      * 批量删除指定key的缓存
      *
@@ -154,7 +126,6 @@ public class CaffeineUtils<K,V> {
         //
         cache.invalidateAll(key);
     }
-
     /**
      * 删除指定key的缓存
      *
@@ -164,7 +135,6 @@ public class CaffeineUtils<K,V> {
         //
         cache.invalidate(key);
     }
-
     /**
      * 清除所有缓存
      */
@@ -172,5 +142,4 @@ public class CaffeineUtils<K,V> {
         //
         cache.invalidateAll();
     }
-
 }

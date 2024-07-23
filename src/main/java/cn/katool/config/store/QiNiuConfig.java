@@ -7,9 +7,7 @@
  * @date: 2022/10/19 8:32
  * @Blog: https://www.wzl1.top/
  */
-
 package cn.katool.config.store;
-
 import com.qiniu.common.Zone;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
@@ -21,7 +19,6 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.stereotype.Component;
-
 @Configuration("QiNiuConfig")
 @Component
 @ToString
@@ -71,7 +68,6 @@ public class QiNiuConfig {
                 throw new Exception("存储区域配置错误");
         }
     }
-
     /**
      * 构建一个七牛上传工具实例
      */
@@ -80,7 +76,6 @@ public class QiNiuConfig {
     public UploadManager uploadManager() throws Exception {
         return new UploadManager(qiNiuConfig());
     }
-
     /**
      * 认证信息实例
      */
@@ -89,7 +84,6 @@ public class QiNiuConfig {
     public Auth auth() {
         return Auth.create(accessKey, secretKey);
     }
-
     /**
      * 构建七牛空间管理实例
      */
@@ -98,5 +92,4 @@ public class QiNiuConfig {
     public BucketManager bucketManager() throws Exception {
         return new BucketManager(auth(), qiNiuConfig());
     }
-
 }

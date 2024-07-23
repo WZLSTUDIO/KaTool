@@ -116,10 +116,7 @@
             <version>2.9.0</version>
         </dependency>
     </dependencies>
-
-
     <url>https://github.com/Karosown/KaTool</url>
-
     <!--开源协议...-->
     <licenses>
         <license>
@@ -141,15 +138,12 @@
             <timezone>+8</timezone>
         </developer>
     </developers>
-
     <!--项目在github或其它托管平台的地址-->
     <scm>
         <connection>https://github.com/Karosown/KaTool.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:Karosown/KaTool.git</developerConnection>
         <url>https://github.com/Karosown/KaTool/tree/master</url>
     </scm>
-
-
     <build>
         <plugins>
             <plugin>
@@ -199,7 +193,6 @@
             </plugin>
         </plugins>
     </build>
-
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -210,6 +203,4 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-
-
 </project>
