@@ -1,7 +1,7 @@
 package cn.katool.services.ai.model.dto.kimi.tools.functions.parameters;
 
-import cn.katool.services.ai.acl.kimi.KimiToolParametersPropertiesGsonSerializer;
-import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.properties.KimiToolParametersProperties;
+import cn.katool.services.ai.acl.kimi.KimiToolParametersPropertiesValueSerializer;
+import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.properties.inner.KimiToolParametersPropertiesValue;
 import com.google.gson.annotations.JsonAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +18,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class KimiToolParameters {
 
-    KimiToolParametersProperties properties;
+    @JsonAdapter(KimiToolParametersPropertiesValueSerializer.class)
+    Map<String, KimiToolParametersPropertiesValue> properties;
     String type = "object";
     List<String> required = new ArrayList<>();
 }

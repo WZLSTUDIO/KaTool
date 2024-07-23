@@ -9,7 +9,7 @@ import cn.katool.util.database.nosql.RedisUtils;
 import cn.katool.util.lock.LocalLockMap;
 import com.alibaba.excel.util.BooleanUtils;
 import com.sun.org.apache.xpath.internal.operations.Bool;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.jni.Local;

@@ -36,7 +36,7 @@ import cn.katool.services.ai.model.entity.kimi.KimiErrorMessage;
 import com.alibaba.excel.util.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -213,17 +213,52 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         return this;
     }
 
-    private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap, Consumer<KimiErrorMessage> throwResolve) {
+    public Proxy getProxy() {
+        return proxy;
+    }
+
+    public KimiAIService setProxy(Proxy proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public KimiAIService setKey(String key) {
+        this.key = key;
+        return this;
+    }
+
+    public Map<String, Function<Map<String, String>, String>> getKimiFunctionDriverMap() {
+        return kimiFunctionDriverMap;
+    }
+
+    public KimiAIService setKimiFunctionDriverMap(Map<String, Function<Map<String, String>, String>> kimiFunctionDriverMap) {
+        this.kimiFunctionDriverMap = kimiFunctionDriverMap;
+        return this;
+    }
+
+    private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap, Consumer<KimiErrorMessage> throwResolve) {
 
         ArrayList<CommonAIMessage> messages;
-        // 对于返回json的处理
+        KimiChatRequest request = Optional.ofNullable(kimiFunctionDriverMap)
+                .map(v->this.getChatRequest().get())
+                .orElseGet(() -> {
+                    KimiChatRequest kimiChatRequest = new KimiChatRequest();
+                    BeanUtil.copyProperties(this.getChatRequest().get(),kimiChatRequest);
+                    kimiChatRequest.setTools(null);
+                    return kimiChatRequest;
+                });
         if (returnJson && null != msg) {
-            chatRequest.get().setResponse_format(KimiResponseFormatEnum.JSON);
+            request.setResponse_format(KimiResponseFormatEnum.JSON);
             msg += "请你按照以下Json格式回复我：\n" +this.getJsonTemplate();
         }
         else {
-            chatRequest.get().setResponse_format(KimiResponseFormatEnum.TEXT);
+            request.setResponse_format(KimiResponseFormatEnum.TEXT);
         }
+
         // 如果不使用历史记录
         // tips: 使用历史记录的条件：开启历史记录，开启上下文缓存使用，如果有ToolCalls，或者msg为空，那么强制使用历史记录
         if (!usingHistory && null != msg) {
@@ -240,13 +275,13 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
                 messages.add(new CommonAIMessage(CommonAIRoleEnum.USER, msg));
             }
         }
-        chatRequest.get().setMessages(messages);
+        request.setMessages(messages);
         Kimi kimi = KimiBuilder.create().chat().completions().build().auth(key).proxy(proxy);
         // 如果开启缓存，那么放入header
         KimiChatResponse post = Optional
                 .ofNullable(this.getCacheHeaders())
-                .map(v->kimi.REQUEST(Method.POST,chatRequest.get(),KimiChatResponse.class,this.cacheHeaders,throwResolve))
-                .orElse(kimi.REQUEST(Method.POST,chatRequest.get(),KimiChatResponse.class,throwResolve));
+                .map(v->kimi.REQUEST(Method.POST, request,KimiChatResponse.class,this.cacheHeaders,throwResolve))
+                .orElse(kimi.REQUEST(Method.POST, request,KimiChatResponse.class,throwResolve));
         KimiChatResponse.Choice choice = post.getChoices().get(0);
         String finishReason = choice.getFinish_reason();
         Boolean isInit = false;
@@ -260,11 +295,14 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
             KimiAiMergeMessage message = backChoice.getMessage();
             this.getHistory().add(message);
             List<ToolCalls> toolCalls = message.getTool_calls();
+            if (null == kimiFunctionDriverMap) {
+                throw new KaToolException(ErrorCode.OPER_ERROR,"没有设置工具驱动，请使用setKimiFunctionDriverMap方法设置");
+            }
             toolCalls.forEach(toolCall->{
                 ToolCallsFuntion function = toolCall.getFunction();
                 String functionName = function.getName();
                 String arguments = function.getArguments();
-                String result = KimiFunctionDriverMap.get(functionName).apply(new Gson().fromJson(arguments,Map.class));
+                String result = kimiFunctionDriverMap.get(functionName).apply(new Gson().fromJson(arguments,Map.class));
                 KimiAiToolCallsMessage reqMsg = new KimiAiToolCallsMessage();
                 reqMsg.setTool_call_id(toolCall.getId())
                         .setName(functionName)
@@ -272,7 +310,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
                         .setRole(CommonAIRoleEnum.TOOL.getRole());
                 this.getHistory().add(reqMsg);
             });
-            return askAdapter(null,usingHistory,returnJson,KimiFunctionDriverMap,throwResolve);
+            return askAdapter(null,usingHistory,returnJson,kimiFunctionDriverMap,throwResolve);
         }
         CommonAIMessage message = choice.getMessage();
         if (usingHistory){
@@ -285,35 +323,66 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
 
 
 
-    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
-        return askAdapter(msg,true,false,KimiFunctionDriverMap,throwResolve);
+    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,true,false,kimiFunctionDriverMap,throwResolve);
     }
-    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
-        return askAdapter(msg,false,true,KimiFunctionDriverMap,throwResolve);
+    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,false,true,kimiFunctionDriverMap,throwResolve);
     }
-    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
-        return askAdapter(msg,true,true,KimiFunctionDriverMap,throwResolve);
+    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,true,true,kimiFunctionDriverMap,throwResolve);
     }
-    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
-        return new Gson().fromJson(askBackJsonInNet(msg, KimiFunctionDriverMap,throwResolve), type);
+    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
+        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,throwResolve), type);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
-        return new Gson().fromJson(askWithContextBackJsonInNet(msg, KimiFunctionDriverMap,throwResolve), type);
+    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<KimiErrorMessage> throwResolve) {
+        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,throwResolve), type);
     }
-    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap) {
-        return askAdapter(msg,true,false,KimiFunctionDriverMap,null);
+    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return askAdapter(msg,true,false,kimiFunctionDriverMap,null);
     }
-    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap) {
-        return askAdapter(msg,false,true,KimiFunctionDriverMap,null);
+    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return askAdapter(msg,false,true,kimiFunctionDriverMap,null);
     }
-    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap) {
-        return askAdapter(msg,true,true,KimiFunctionDriverMap,null);
+    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return askAdapter(msg,true,true,kimiFunctionDriverMap,null);
     }
-    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap) {
-        return new Gson().fromJson(askBackJsonInNet(msg, KimiFunctionDriverMap,null), type);
+    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,null), type);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> KimiFunctionDriverMap) {
-        return new Gson().fromJson(askWithContextBackJsonInNet(msg, KimiFunctionDriverMap,null), type);
+    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,null), type);
+    }
+
+    public String askWithContextInNet(String msg,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,true,false,kimiFunctionDriverMap,throwResolve);
+    }
+    public String askBackJsonInNet(String msg,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,false,true,kimiFunctionDriverMap,throwResolve);
+    }
+    public String askWithContextBackJsonInNet(String msg,Consumer<KimiErrorMessage> throwResolve) {
+        return askAdapter(msg,true,true,kimiFunctionDriverMap,throwResolve);
+    }
+    public Object askBackDaoInNet(String msg, Type type,Consumer<KimiErrorMessage> throwResolve) {
+        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,throwResolve), type);
+    }
+    public Object askWithContextBackDaoInNet(String msg, Type type,Consumer<KimiErrorMessage> throwResolve) {
+        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,throwResolve), type);
+    }
+    public String askWithContextInNet(String msg) {
+        return askWithContextInNet(msg,kimiFunctionDriverMap);
+    }
+    public String askBackJsonInNet(String msg) {
+        return askBackJsonInNet(msg,kimiFunctionDriverMap);
+    }
+    public String askWithContextBackJsonInNet(String msg) {
+        return askWithContextBackJsonInNet(msg,kimiFunctionDriverMap);
+    }
+    public Object askBackDaoInNet(String msg, Type type) {
+        return askBackDaoInNet(msg, type,kimiFunctionDriverMap);
+    }
+    public Object askWithContextBackDaoInNet(String msg, Type type) {
+        return askWithContextBackDaoInNet(msg, type,kimiFunctionDriverMap);
     }
     @Override
     public String ask(String msg, Consumer<KimiErrorMessage> throwResolve) {
@@ -323,6 +392,8 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public String askWithContext(String msg, Consumer<KimiErrorMessage> throwResolve) {
         return askWithContextInNet(msg,null,throwResolve);
     }
+    Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap = null;
+
     @Override
     public String askBackJson(String msg, Consumer<KimiErrorMessage> throwResolve) {
         return askBackJsonInNet(msg,null,throwResolve);

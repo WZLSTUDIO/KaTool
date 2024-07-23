@@ -1,6 +1,5 @@
 package cn.katool.services.ai.model.dto.kimi.tools;
 
-import cn.hutool.json.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
