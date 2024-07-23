@@ -14,9 +14,9 @@ import java.util.List;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class KimiBaseRequest {
+public class KimiBaseRequest<T extends CommonAIMessage> {
     String model = KimiModel.MOONSHOT_V1_8K;
-    List<CommonAIMessage> messages;
+    List<T> messages;
 
     List<KimiToolBody> tools;
 

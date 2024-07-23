@@ -6,21 +6,9 @@ import com.google.gson.reflect.TypeToken;
 
 
 public class KimiGsonFactory {
-    public static Gson create(TypeToken ... types){
-        GsonBuilder resBuilder = new GsonBuilder();
-        for (TypeToken type : types) {
-            try {
-                resBuilder.registerTypeAdapter(type.getType(), type.getRawType().newInstance());
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return resBuilder.create();
-    }
-
     public static Gson create(){
-        return create(KimiToolParametersPropertiesGsonSerializer.KimiToolParametersPropertiesGsonSerializerTypeToken);
+        GsonBuilder resBuilder = new GsonBuilder();
+        resBuilder.registerTypeAdapter(KimiToolParametersPropertiesGsonSerializer.class,new KimiToolParametersPropertiesGsonSerializer());
+        return resBuilder.setPrettyPrinting().create();
     }
 }

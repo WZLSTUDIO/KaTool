@@ -5,7 +5,6 @@ import cn.katool.services.ai.model.entity.CommonAIMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,11 +38,10 @@ public class PromptTemplateDrive {
     }
 
     public CommonAIMessage generateTemplate(){
-        AtomicReference<String> res= new AtomicReference<>(template);
         if (null != this.insteadMapping && !this.insteadMapping.isEmpty()) {
-            this.insteadMapping.entrySet().forEach(item -> res.set(StringUtils.replace(this.template, "${" + item.getKey() + "}", item.getValue())));
+            this.insteadMapping.entrySet().forEach(item -> template = template.replace("${" + item.getKey() + "}", item.getValue()));
         }
-        return new CommonAIMessage(CommonAIRoleEnum.SYS, res.get());
+        return new CommonAIMessage(CommonAIRoleEnum.SYS, template);
     }
 
 }

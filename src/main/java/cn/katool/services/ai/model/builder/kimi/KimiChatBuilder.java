@@ -1,11 +1,8 @@
-package cn.katool.services.ai.model.builder;
+package cn.katool.services.ai.model.builder.kimi;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.BeanUtils;
-
-import java.lang.reflect.Method;
 
 @Data
 @AllArgsConstructor

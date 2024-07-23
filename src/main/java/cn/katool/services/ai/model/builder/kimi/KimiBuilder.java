@@ -1,10 +1,11 @@
-package cn.katool.services.ai.model.builder;
+package cn.katool.services.ai.model.builder.kimi;
 
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
-import cn.katool.services.ai.model.entity.Kimi;
+import cn.katool.services.ai.model.entity.kimi.Kimi;
+import com.alibaba.ttl.TransmittableThreadLocal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -91,7 +92,7 @@ public class KimiBuilder extends KimiCommonBuilder{
         public Kimi build(){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;
-            return new Kimi(this,KimiConfig.KIMI_API_KEY,new InheritableThreadLocal<String>(){
+            return new Kimi(this,KimiConfig.KIMI_API_KEY,new TransmittableThreadLocal<String>(){
                 @Override
                 protected String childValue(String parentValue) {
                     return "application/json";
@@ -101,7 +102,7 @@ public class KimiBuilder extends KimiCommonBuilder{
         public Kimi build(String kimiApiKey){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;
-            return new Kimi(this,kimiApiKey,new InheritableThreadLocal<String>(){
+            return new Kimi(this,kimiApiKey,new TransmittableThreadLocal<String>(){
                 @Override
                 protected String childValue(String parentValue) {
                     return "application/json";

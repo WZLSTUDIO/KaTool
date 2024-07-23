@@ -1,6 +1,4 @@
-package cn.katool.services.ai.model.builder;
-
-import cn.katool.services.ai.model.entity.Kimi;
+package cn.katool.services.ai.model.builder.kimi;
 
 public class KimiCacheBuilderInterface extends KimiBuilderBase {
 

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class KimiChatRequest extends KimiBaseRequest {
+public class KimiChatRequest<T extends CommonAIMessage> extends KimiBaseRequest<T> {
     Float temperature = 0.3f;
     Float top_p = 1.0f;
     Integer max_tokens = 1024;
@@ -51,7 +51,7 @@ public class KimiChatRequest extends KimiBaseRequest {
     }
 
     @Override
-    public KimiChatRequest setMessages(List<CommonAIMessage> messages) {
+    public KimiChatRequest setMessages(List<T> messages) {
         return (KimiChatRequest) super.setMessages(messages);
     }
 

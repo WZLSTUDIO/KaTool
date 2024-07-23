@@ -17,7 +17,7 @@ public class KimiOtherResponse {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class KimiOtherResponseData{
+    public class KimiOtherResponseData extends AiQueryMoneyResponse{
         Long total_tokens;
         Double available_balance;
         Double voucher_balance;

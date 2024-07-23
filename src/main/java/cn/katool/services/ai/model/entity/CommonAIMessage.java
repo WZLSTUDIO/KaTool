@@ -7,13 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
 public class CommonAIMessage {
     private String role;
     private String content;
-    private Boolean partial = false;
 
     public CommonAIMessage(String role, String message) {
         this.role = role;

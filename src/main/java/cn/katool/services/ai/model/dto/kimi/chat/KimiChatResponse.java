@@ -1,5 +1,6 @@
 package cn.katool.services.ai.model.dto.kimi.chat;
 
+import cn.katool.services.ai.model.dto.kimi.message.KimiAiMergeMessage;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class KimiChatResponse {
 
     public static class Choice {
         private int index;
-        private CommonAIMessage message;
+        private KimiAiMergeMessage message;
         private String finish_reason;
 
         // Getters and setters for each field inside Choice

@@ -4,7 +4,8 @@ package cn.katool.services.ai.constant;
 public enum CommonAIRoleEnum {
     SYS("system"),
     USER("user"),
-    ASSISTANT("assistant")
+    ASSISTANT("assistant"),
+    TOOL("tool"),
     ;
     private String role;
 

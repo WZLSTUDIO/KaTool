@@ -1,4 +1,4 @@
-package cn.katool.services.ai.model.builder;
+package cn.katool.services.ai.model.builder.kimi;
 
 import com.alibaba.excel.util.StringUtils;
 import org.springframework.beans.BeanUtils;
