@@ -29,7 +29,7 @@ public class FileUtils {
                    tempFile.delete();
                    tempFile.createNewFile();
                 }
-                log.info("【KaTool::FileUtils】 =>  Info: 临时文件创建成功");
+                log.debug("【KaTool::FileUtils】 =>  Info: 临时文件创建成功");
                 return tempFile;
             } catch (IOException e) {
                 log.warn("【KaTool::FileUtils】 =>  Warn: 临时文件创建重试");
