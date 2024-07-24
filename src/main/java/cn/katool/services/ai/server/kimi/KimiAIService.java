@@ -234,6 +234,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
                 messages.add(new CommonAIMessage(CommonAIRoleEnum.USER, msg));
             }
         }
+        List orignMsg = request.getMessages();
         request.setMessages(messages);
         Kimi kimi = KimiBuilder.create().chat().completions().build().auth(key).proxy(proxy);
         // 如果开启缓存，那么放入header
@@ -276,6 +277,9 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
             // 这个时候需要将之前放入的TOOl_CALLS的message删除
             this.getHistory().removeIf(v->CommonAIRoleEnum.TOOL.equals(v.getRole()));
             this.getHistory().add(message);
+        }
+        else{
+            request.setMessages(orignMsg);
         }
         return message.getContent();
     }

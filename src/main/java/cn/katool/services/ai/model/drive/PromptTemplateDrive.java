@@ -1,9 +1,8 @@
 package cn.katool.services.ai.model.drive;
 import cn.katool.services.ai.constant.CommonAIRoleEnum;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 @Data
@@ -26,9 +25,10 @@ public class PromptTemplateDrive {
         return new PromptTemplateDrive(template);
     }
     public CommonAIMessage generateTemplate(){
+        AtomicReference<String> tip = new AtomicReference<>(this.template);
         if (null != this.insteadMapping && !this.insteadMapping.isEmpty()) {
-            this.insteadMapping.entrySet().forEach(item -> template = template.replace("${" + item.getKey() + "}", item.getValue()));
+            this.insteadMapping.entrySet().forEach(item -> tip.set(tip.get().replace("${" + item.getKey() + "}", item.getValue())));
         }
-        return new CommonAIMessage(CommonAIRoleEnum.SYS, template);
+        return new CommonAIMessage(CommonAIRoleEnum.SYS, tip.get());
     }
 }
