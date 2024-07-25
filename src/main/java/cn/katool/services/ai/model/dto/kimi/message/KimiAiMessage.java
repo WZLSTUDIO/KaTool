@@ -1,4 +1,5 @@
 package cn.katool.services.ai.model.dto.kimi.message;
+import cn.katool.services.ai.model.dto.kimi.chat.KimiChatResponse;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;

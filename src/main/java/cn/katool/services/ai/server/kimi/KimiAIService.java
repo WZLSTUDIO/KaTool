@@ -1,5 +1,4 @@
 package cn.katool.services.ai.server.kimi;
-import ch.qos.logback.classic.util.CopyOnInheritThreadLocal;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
@@ -8,6 +7,7 @@ import cn.katool.Exception.KaToolException;
 import cn.katool.common.CopyOnTransmittableThreadLocal;
 import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
+import cn.katool.services.ai.common.KimiEventSourceLinsener;
 import cn.katool.services.ai.constant.CommonAIRoleEnum;
 import cn.katool.services.ai.constant.kimi.*;
 import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
@@ -39,10 +39,14 @@ import cn.hutool.core.lang.Pair;
 import lombok.AllArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.sse.EventSource;
+
 import java.io.File;
 import java.lang.reflect.Type;
 import java.net.Proxy;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -109,7 +113,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
     public PromptTemplateDrive getPromptTemplateDrive() {
         return promptTemplateDrive;
     }
-    public ArrayList<CommonAIMessage> getHistory() {
+    public List<CommonAIMessage> getHistory() {
         return historyLocalMap.get();
     }
     public String getJsonTemplate() {
@@ -201,8 +205,9 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         this.kimiFunctionDriverMap = kimiFunctionDriverMap;
         return this;
     }
-    private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap, Consumer<KimiErrorMessage> throwResolve) {
-        ArrayList<CommonAIMessage> messages;
+
+    private EventSource askStreamAdapter(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap, Consumer<String> kimiAiResponseDetail, Consumer<KimiErrorMessage> throwResolve, CountDownLatch eventLatch){
+        List<CommonAIMessage> messages;
         KimiChatRequest request = Optional.ofNullable(kimiFunctionDriverMap)
                 .map(v->this.getChatRequest().get())
                 .orElseGet(() -> {
@@ -211,6 +216,71 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
                     kimiChatRequest.setTools(null);
                     return kimiChatRequest;
                 });
+        request.setResponse_format(KimiResponseFormatEnum.TEXT);
+        if (!request.getStream()){
+            log.error("[Kimi-AI-AskSSE]:ask调用请使用 ask 系列方法，采用askStream系列方法固定走向为stream");
+            request.setStream(true);
+        }
+
+        messages = this.getHistory();
+        CommonAIMessage commonAIMessage = this.promptTemplateDrive.generateTemplate();
+        if (!messages.contains(commonAIMessage)){
+            messages.add(commonAIMessage);
+        }
+        if (null!=msg){
+            messages.add(new CommonAIMessage(CommonAIRoleEnum.USER, msg));
+        }
+        request.setMessages(messages);
+
+        Kimi kimi = KimiBuilder.create().chat().completions().build().auth(key).proxy(proxy);
+        Callable callBack = () -> askStreamAdapter(null, kimiFunctionDriverMap, kimiAiResponseDetail, throwResolve, eventLatch);
+        KimiEventSourceLinsener kimiEventSourceLinsener = new KimiEventSourceLinsener(kimiAiResponseDetail,
+                callBack,kimiFunctionDriverMap,this.getHistory(), eventLatch);
+
+        // 如果开启缓存，那么放入header
+        EventSource eventSource = Optional
+                .ofNullable(this.getCacheHeaders())
+                .map(v -> kimi.STREAM(request, v, kimiEventSourceLinsener,throwResolve))
+                .orElse(kimi.STREAM(request, kimiEventSourceLinsener,throwResolve));
+        try {
+            eventLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return eventSource;
+    }
+    public EventSource askStream(String msg,Consumer<String> kimiAiResponseDetail, Consumer<KimiErrorMessage> throwResolve){
+        return askStreamAdapter(msg,null,kimiAiResponseDetail,throwResolve, new CountDownLatch(1));
+    }
+    public EventSource askStream(String msg,Consumer<String> kimiAiResponseDetail){
+        return askStream(msg,kimiAiResponseDetail,null);
+    }
+//    public EventSource askStreamInNet(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail, Consumer<KimiErrorMessage> throwResolve){
+//        return askStreamAdapter(msg,kimiFunctionDriverMap,kimiAiResponseDetail,throwResolve, new CountDownLatch(1));
+//    }
+//    public EventSource askStreamInNet(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail){
+//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
+//    }
+//    public EventSource askStreamInNet(String msg,Consumer<String> kimiAiResponseDetail){
+//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
+//    }
+//    public EventSource askStreamInNet(String msg,Consumer<String> kimiAiResponseDetail, Consumer<KimiErrorMessage> throwResolve){
+//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,throwResolve);
+//    }
+    private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap, Consumer<KimiErrorMessage> throwResolve) {
+        List<CommonAIMessage> messages;
+        KimiChatRequest request = Optional.ofNullable(kimiFunctionDriverMap)
+                .map(v->this.getChatRequest().get())
+                .orElseGet(() -> {
+                    KimiChatRequest kimiChatRequest = new KimiChatRequest();
+                    BeanUtil.copyProperties(this.getChatRequest().get(),kimiChatRequest);
+                    kimiChatRequest.setTools(null);
+                    return kimiChatRequest;
+                });
+        if (request.getStream()){
+            log.error("[Kimi-AI-Ask]:SSE请调用 askStram 系列方法，采用ask系列方法固定走向为!stream");
+            request.setStream(false);
+        }
         if (returnJson && null != msg) {
             request.setResponse_format(KimiResponseFormatEnum.JSON);
             msg += "请你按照以下Json格式回复我：\n" +this.getJsonTemplate();
@@ -240,7 +310,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         // 如果开启缓存，那么放入header
         KimiChatResponse post = Optional
                 .ofNullable(this.getCacheHeaders())
-                .map(v->kimi.REQUEST(Method.POST, request,KimiChatResponse.class,this.cacheHeaders,throwResolve))
+                .map(v->kimi.REQUEST(Method.POST, request,KimiChatResponse.class,v,throwResolve))
                 .orElse(kimi.REQUEST(Method.POST, request,KimiChatResponse.class,throwResolve));
         KimiChatResponse.Choice choice = post.getChoices().get(0);
         String finishReason = choice.getFinish_reason();
@@ -251,13 +321,13 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
                 String json = kimi.getResponseResultTempStorage().get();
                 body = kimi.anlayseResponse(json,new TypeToken<KimiChatResponse>() {
                 });
+            if (null == kimiFunctionDriverMap) {
+                throw new KaToolException(ErrorCode.OPER_ERROR,"没有设置工具驱动，请使用setKimiFunctionDriverMap方法设置");
+            }
             KimiChatResponse.Choice backChoice = body.getChoices().get(0);
             KimiAiMergeMessage message = backChoice.getMessage();
             this.getHistory().add(message);
             List<ToolCalls> toolCalls = message.getTool_calls();
-            if (null == kimiFunctionDriverMap) {
-                throw new KaToolException(ErrorCode.OPER_ERROR,"没有设置工具驱动，请使用setKimiFunctionDriverMap方法设置");
-            }
             toolCalls.forEach(toolCall->{
                 ToolCallsFuntion function = toolCall.getFunction();
                 String functionName = function.getName();
@@ -275,7 +345,7 @@ public class KimiAIService implements CommonAIService<KimiOtherResponse.KimiOthe
         CommonAIMessage message = choice.getMessage();
         if (usingHistory){
             // 这个时候需要将之前放入的TOOl_CALLS的message删除
-            this.getHistory().removeIf(v->CommonAIRoleEnum.TOOL.equals(v.getRole()));
+//            this.getHistory().removeIf(v->CommonAIRoleEnum.TOOL.equals(v.getRole()));
             this.getHistory().add(message);
         }
         else{

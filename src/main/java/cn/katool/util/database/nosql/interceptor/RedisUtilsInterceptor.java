@@ -56,9 +56,14 @@ public class RedisUtilsInterceptor {
         if (casePolicy){
             LocalLockMap.getWriteLock(key).lock();
         }
-        Object o = run.apply(casePolicy);
-        if (casePolicy){
-            LocalLockMap.getWriteLock(key).unlock();
+        Object o;
+        try {
+            o = run.apply(casePolicy);
+        }
+        finally {
+            if (casePolicy){
+                LocalLockMap.getWriteLock(key).unlock();
+            }
         }
         return o;
     }
@@ -69,9 +74,13 @@ public class RedisUtilsInterceptor {
         if (casePolicy){
             LocalLockMap.getReadLock(key).lock();
         }
-        Object o = run.apply(casePolicy);
-        if (casePolicy){
-            LocalLockMap.getReadLock(key).unlock();
+        Object o;
+        try {
+            o = run.apply(casePolicy);
+        }finally {
+            if (casePolicy){
+                LocalLockMap.getReadLock(key).unlock();
+            }
         }
         return o;
     }
@@ -146,7 +155,6 @@ public class RedisUtilsInterceptor {
                 if (!casePolicy) {
                     return RedisUtilsInterceptor.this.aroundByGetResponse(joinPoint);
                 }
-                ReentrantReadWriteLock.ReadLock readLock = LocalLockMap.getReadLock(key);
                 List value = (List) cachePolicy.get(key);
                 if (ObjectUtils.isEmpty(value) || value.size() < cont) {
                     return RedisUtilsInterceptor.this.aroundByGetResponse(joinPoint);
@@ -156,7 +164,6 @@ public class RedisUtilsInterceptor {
                 cachePolicy.setOrUpdate(key, cache);
                 log.debug("【KaTool::RedisUtil::AOP】RedisUtil-CachePolicy  =>  {}: 命中内存缓存，key:{}", joinPoint.getSignature().getName(), key);
                 log.debug("【KaTool::RedisUtil::AOP】RedisUtil-CachePolicy  =>  key:{} || value：{}", key, value);
-                readLock.unlock();
                 return value;
             }
         });

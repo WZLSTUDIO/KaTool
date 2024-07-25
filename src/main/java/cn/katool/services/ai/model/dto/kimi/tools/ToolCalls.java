@@ -1,4 +1,5 @@
 package cn.katool.services.ai.model.dto.kimi.tools;
+import com.google.gson.annotations.Expose;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,4 +12,6 @@ public class ToolCalls {
     String id;
     ToolCallsFuntion function;
     String type;
+    @Expose(serialize = false)
+    Integer index;
 }

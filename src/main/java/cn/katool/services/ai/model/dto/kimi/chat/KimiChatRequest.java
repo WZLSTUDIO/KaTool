@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
+@Slf4j
 public class KimiChatRequest<T extends CommonAIMessage> extends KimiBaseRequest<T> {
     Float temperature = 0.3f;
     Float top_p = 1.0f;
@@ -39,6 +42,7 @@ public class KimiChatRequest<T extends CommonAIMessage> extends KimiBaseRequest<
         this.stop = stop;
         return this;
     }
+
     @Override
     public KimiChatRequest setModel(String model) {
         return (KimiChatRequest) super.setModel(model);

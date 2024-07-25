@@ -4,6 +4,7 @@ import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.config.ai.kimi.KimiProxyConfig;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
+import cn.katool.services.ai.common.KimiEventSourceLinsener;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
 import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
 import cn.katool.services.ai.model.dto.kimi.file.KimiFileMeta;
@@ -14,15 +15,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import javax.annotation.Resource;
+import okhttp3.*;
+import okhttp3.internal.sse.RealEventSource;
+import okhttp3.sse.EventSource;
+import okhttp3.sse.EventSources;
+
 import java.io.File;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+
 @Slf4j
 @Getter
 @AllArgsConstructor
@@ -104,6 +111,16 @@ public class Kimi{
                 throw new KaToolException(ErrorCode.OPER_ERROR,t.getError().getMessage());
             });
         }
+        if (resJson.contains("\"finish_reason\":\"length\"")){
+            KimiErrorMessage kimiErrorMessage = new KimiErrorMessage().setMessage("token is too large, back json is [" + resJson + "]").setCode(ErrorCode.PARAMS_ERROR.getCode());
+            Optional.ofNullable(throwResolve).map(error->{
+                log.error("kimi request error:{}",kimiErrorMessage);
+                error.accept(kimiErrorMessage);
+                return null;
+            }).orElseGet(()-> {
+                throw new KaToolException(ErrorCode.PARAMS_ERROR, kimiErrorMessage.getMessage());
+            });
+        }
         responseResultTempStorage.set(resJson);
         T res = KimiGsonFactory.create().fromJson(resJson, TypeToken.get(responseClass).getType());
         return res;
@@ -145,8 +162,47 @@ public class Kimi{
         });
         return detailRequest(req,responseClass,throwResolve);
     }
+
     public <T,R> R REQUEST(Method httpMethod,T request,Class<R> responseClass,Consumer<KimiErrorMessage> throwResolve){
         return REQUEST(httpMethod,request,responseClass,null,throwResolve);
+    }
+
+    public <T> EventSource STREAM(T request, Map<String,String>headers, KimiEventSourceLinsener kimiEventSourceLinsener,Consumer<KimiErrorMessage> throwResolve){
+        RequestBody requestBody = RequestBody.create(MediaType.parse("text/event-stream"),KimiGsonFactory.create().toJson(request));
+        if (StringUtils.isBlank(key)){
+            throw new KaToolException(ErrorCode.OPER_ERROR,"kimi-key is null");
+        }
+
+        Request.Builder header = new Request.Builder().url(this.kimiBuilder.getUrl());
+
+        if (headers !=null && !headers.isEmpty()){
+            header.headers(Headers.of(headers));
+        }
+        header.addHeader(Header.AUTHORIZATION.getValue(), "Bearer " + key)
+                .addHeader("Connection", "keep-alive");
+        Request req = header
+                .post(requestBody)
+                .build();
+        Proxy proxy = null;
+        if (KimiProxyConfig.ENABLE){
+            proxy = new Proxy(Proxy.Type.HTTP,InetSocketAddress.createUnresolved(KimiProxyConfig.HOST,KimiProxyConfig.PORT));
+        }
+        if (this.proxy !=null ){
+            proxy = this.proxy;
+        }
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .proxy(proxy)
+                .connectTimeout(1, TimeUnit.DAYS)
+                .writeTimeout(1, TimeUnit.DAYS)
+                .readTimeout(1, TimeUnit.DAYS)//这边需要将超时显示设置长一点，不然刚连上就断开，之前以为调用方式错误被坑了半天
+                .build();
+        RealEventSource eventSource = new RealEventSource(req, kimiEventSourceLinsener);
+        eventSource.connect(okHttpClient);
+        return eventSource;
+    }
+
+    public <T> EventSource STREAM(T request,KimiEventSourceLinsener kimiEventSourceLinsener,Consumer<KimiErrorMessage> throwResolve){
+        return STREAM(request,null,kimiEventSourceLinsener,throwResolve);
     }
     public KimiFileMeta upload(File file,Consumer<KimiErrorMessage> throwResolve){
         validLegal(KimiBuilderEnum.FILES);
@@ -178,4 +234,5 @@ public class Kimi{
     public <T> T anlayseResponse(String json, TypeToken<T> kimiChatResponseTypeToken) {
         return KimiGsonFactory.create().fromJson(json,kimiChatResponseTypeToken.getType());
     }
+
 }

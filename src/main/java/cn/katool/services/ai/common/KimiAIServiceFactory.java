@@ -1,5 +1,6 @@
 package cn.katool.services.ai.common;
 import cn.hutool.core.lang.Pair;
+import cn.katool.services.ai.constant.kimi.KimiModel;
 import cn.katool.services.ai.model.drive.PromptTemplateDrive;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatRequest;
 import cn.katool.services.ai.model.dto.kimi.tools.KimiToolBody;
@@ -9,16 +10,15 @@ import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.propertie
 import cn.katool.services.ai.server.kimi.KimiAIService;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 public class KimiAIServiceFactory {
     private static KimiChatRequest createKimiChatRequest(String kimiModel,List<KimiToolBody> tools) {
         KimiChatRequest kimiChatRequest = new KimiChatRequest();
         kimiChatRequest.setModel(kimiModel)
+                .setMax_tokens(getMaxToken(kimiModel))
                 .setTools(tools);
         return kimiChatRequest;
     }
@@ -28,23 +28,40 @@ public class KimiAIServiceFactory {
             kimiAIService.setPromptTemplateDrive(promptTemplateDrive);
         }
         HashMap<String, Function<Map<String, String>, String>> kimiFunctionDriverMap = new HashMap<>();
-        toolsConfigKey.forEach(v->{
+        Optional.ofNullable(toolsConfigKey).ifPresent(item->item.forEach(v->{
             String methodName = v.getT1();
             Function<Map<String, String>, String> function = v.getT3();
             if (null == function){
                 return ;
             }
             kimiFunctionDriverMap.put(methodName,function);
-        });
+        }));
         if (!kimiFunctionDriverMap.isEmpty()) {
             kimiAIService.setKimiFunctionDriverMap(kimiFunctionDriverMap);
         }
         return kimiAIService;
     }
+
+    private static Integer getMaxToken(String kimoModel) {
+        Integer maxToken = 8*1024;
+        switch (kimoModel) {
+            case KimiModel.MOONSHOT_V1_8K:
+                maxToken = 8*1024;
+                break;
+            case KimiModel.MOONSHOT_V1_32K:
+                maxToken = 32*1024;
+                break;
+            case KimiModel.MOONSHOT_V1_128K:
+                maxToken = 128*1024;
+            default:
+                maxToken = 8*1024;
+        }
+        return (maxToken<<1)/3;
+    }
     public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
                                                            PromptTemplateDrive promptTemplateDrive,
                                                            Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
-        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive, toolsConfig.keySet());
+        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive, null!=toolsConfig?toolsConfig.keySet():null);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getToolsDefault(toolsConfig));
         kimiAIService.setChatRequest(kimiChatRequest);
         return kimiAIService;
@@ -93,6 +110,9 @@ public class KimiAIServiceFactory {
                 .setParameters(getSearchToolParameters(paramsAndSecuma));
     }
     private static <T> List<KimiToolBody> getToolsDefault(Map<Tuple3<String,String, Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
+        if (null == toolsConfig) {
+            return null;
+        }
         List<KimiToolBody> collect = toolsConfig.entrySet().stream().map(v -> {
             return new KimiToolBody()
                     .setFunction(createKimiFunctionBodyDefaultType(v.getKey().getT1(), v.getKey().getT2(), v.getValue()));
