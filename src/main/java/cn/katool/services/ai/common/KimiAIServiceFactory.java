@@ -8,6 +8,7 @@ import cn.katool.services.ai.model.dto.kimi.tools.functions.KimiFunctionBody;
 import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.KimiToolParameters;
 import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.properties.inner.KimiToolParametersPropertiesValue;
 import cn.katool.services.ai.server.kimi.KimiAIService;
+import org.springframework.util.ObjectUtils;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 
@@ -18,8 +19,8 @@ public class KimiAIServiceFactory {
     private static KimiChatRequest createKimiChatRequest(String kimiModel,List<KimiToolBody> tools) {
         KimiChatRequest kimiChatRequest = new KimiChatRequest();
         kimiChatRequest.setModel(kimiModel)
-                .setMax_tokens(getMaxToken(kimiModel))
-                .setTools(tools);
+                .setMax_tokens(KimiAiUtils.getIniterToken(kimiModel));
+        kimiChatRequest.setTools(tools);
         return kimiChatRequest;
     }
     private static KimiAIService createEmptyService(PromptTemplateDrive promptTemplateDrive, Set<Tuple3<String, String, Function<Map<String, String>, String>>> toolsConfigKey){
@@ -42,22 +43,7 @@ public class KimiAIServiceFactory {
         return kimiAIService;
     }
 
-    private static Integer getMaxToken(String kimoModel) {
-        Integer maxToken = 8*1024;
-        switch (kimoModel) {
-            case KimiModel.MOONSHOT_V1_8K:
-                maxToken = 8*1024;
-                break;
-            case KimiModel.MOONSHOT_V1_32K:
-                maxToken = 32*1024;
-                break;
-            case KimiModel.MOONSHOT_V1_128K:
-                maxToken = 128*1024;
-            default:
-                maxToken = 8*1024;
-        }
-        return (maxToken<<1)/3;
-    }
+
     public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
                                                            PromptTemplateDrive promptTemplateDrive,
                                                            Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
@@ -69,7 +55,7 @@ public class KimiAIServiceFactory {
     public static <T> KimiAIService createKimiAiService(String kimiModel,
                                                     PromptTemplateDrive promptTemplateDrive,
                                                     Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig) {
-        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive,toolsConfig.keySet());
+        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive,null!=toolsConfig?toolsConfig.keySet():null);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getTools(toolsConfig));
         kimiAIService.setChatRequest(kimiChatRequest);
         return kimiAIService;
@@ -110,7 +96,7 @@ public class KimiAIServiceFactory {
                 .setParameters(getSearchToolParameters(paramsAndSecuma));
     }
     private static <T> List<KimiToolBody> getToolsDefault(Map<Tuple3<String,String, Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
-        if (null == toolsConfig) {
+        if (ObjectUtils.isEmpty(toolsConfig)) {
             return null;
         }
         List<KimiToolBody> collect = toolsConfig.entrySet().stream().map(v -> {
@@ -120,6 +106,9 @@ public class KimiAIServiceFactory {
         return collect;
     }
     private static <T> List<KimiToolBody> getTools(Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig) {
+        if (ObjectUtils.isEmpty(toolsConfig)) {
+            return null;
+        }
         List<KimiToolBody> collect = toolsConfig.entrySet().stream().map(v -> {
             return new KimiToolBody()
                     .setFunction(createKimiFunctionBody(v.getKey().getT1(), v.getKey().getT2(), v.getValue()));

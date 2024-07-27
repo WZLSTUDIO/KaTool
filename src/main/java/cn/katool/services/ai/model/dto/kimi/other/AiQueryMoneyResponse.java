@@ -1,3 +1,6 @@
 package cn.katool.services.ai.model.dto.kimi.other;
-public class AiQueryMoneyResponse {
+
+import cn.katool.services.ai.model.entity.RequestBody;
+
+public interface AiQueryMoneyResponse extends RequestBody {
 }

@@ -1,8 +1,13 @@
 package cn.katool.services.ai.model.builder.kimi;
+import cn.katool.services.ai.CommonAIService;
+import cn.katool.services.ai.model.entity.ErrorMessage;
+import cn.katool.services.ai.model.entity.kimi.Kimi;
 import com.alibaba.excel.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
+
 public class KimiCommonBuilder {
     protected KimiBuilder devailParam(KimiBuilder builder,Object value){
         KimiBuilder res =KimiBuilder.create();
@@ -72,4 +77,5 @@ public class KimiCommonBuilder {
         }
         return t;
     }
+
 }

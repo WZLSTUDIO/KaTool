@@ -1,15 +1,21 @@
 package cn.katool.services.ai.model.builder.kimi;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
+import cn.katool.common.CopyOnTransmittableThreadLocal;
 import cn.katool.config.ai.kimi.KimiConfig;
+import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
+import cn.katool.services.ai.model.entity.ErrorMessage;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
+import cn.katool.util.AiServiceHttpUtil;
 import com.alibaba.ttl.TransmittableThreadLocal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import java.util.Locale;
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -76,17 +82,21 @@ public class KimiBuilder extends KimiCommonBuilder{
         private KimiBuilder balance(){
             return  solveStepWithMethodName();
         }
-        public Kimi build(){
-            return build(KimiConfig.KIMI_API_KEY);
+        public Kimi build(AiServiceHttpUtil httpUtil){
+            return build(httpUtil,null);
         }
-        public Kimi build(String kimiApiKey){
+
+        public Kimi build(AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders){
+            return build(KimiConfig.getKimiKey(),httpUtil,cacheHeaders);
+        }
+        public Kimi build(String kimiApiKey,AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;
-            return new Kimi(this,kimiApiKey,new TransmittableThreadLocal<String>(){
+            return new Kimi(this,kimiApiKey,new CopyOnTransmittableThreadLocal<String>(){
                 @Override
-                protected String childValue(String parentValue) {
+                protected String initialValue() {
                     return "application/json";
                 }
-            });
+            },httpUtil,cacheHeaders);
         }
     }

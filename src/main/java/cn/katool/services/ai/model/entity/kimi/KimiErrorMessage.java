@@ -1,5 +1,4 @@
 package cn.katool.services.ai.model.entity.kimi;
-import cn.katool.services.ai.ErrorMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +9,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class KimiErrorMessage extends ErrorMessage {
+public class KimiErrorMessage {
     Integer code;
     String message;
     String param;

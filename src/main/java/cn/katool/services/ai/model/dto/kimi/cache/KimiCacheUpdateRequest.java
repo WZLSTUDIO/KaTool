@@ -1,4 +1,5 @@
 package cn.katool.services.ai.model.dto.kimi.cache;
+import cn.katool.services.ai.model.entity.RequestBody;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class KimiCacheUpdateRequest {
+public class KimiCacheUpdateRequest implements RequestBody {
     String id;
     KimiCacheUpdateRequestMeta meta;
     @Data

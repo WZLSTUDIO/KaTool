@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class KimiChatRequest<T extends CommonAIMessage> extends KimiBaseRequest<T> {
     Float temperature = 0.3f;
     Float top_p = 1.0f;
-    Integer max_tokens = 1024;
+    Long max_tokens = 1024L;
     Integer n = 1;
     Float presence_penalty = 0f;
     Float frequency_penalty = 0f;

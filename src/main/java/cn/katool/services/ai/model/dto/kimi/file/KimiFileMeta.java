@@ -1,4 +1,5 @@
 package cn.katool.services.ai.model.dto.kimi.file;
+import cn.katool.services.ai.model.entity.RequestBody;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class KimiFileMeta {
+public class KimiFileMeta implements RequestBody {
     private String id;
     private String object;
     private Long bytes;
