@@ -45,7 +45,7 @@ public class AiServiceHttpUtil {
     /**
      * X509TrustManager instance which ignored SSL certification
      */
-    public static final X509TrustManager IGNORE_SSL_TRUST_MANAGER_X509 = new X509TrustManager() {
+    private static final X509TrustManager IGNORE_SSL_TRUST_MANAGER_X509 = new X509TrustManager() {
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {
         }
@@ -68,7 +68,7 @@ public class AiServiceHttpUtil {
      * @throws KeyManagementException
      */
     @SneakyThrows
-    public static SSLContext getIgnoreInitedSslContext() {
+    private static SSLContext getIgnoreInitedSslContext() {
         var sslContext = SSLContext.getInstance("SSL");
         sslContext.init(null, new TrustManager[] { IGNORE_SSL_TRUST_MANAGER_X509 }, new SecureRandom());
         return sslContext;
@@ -79,7 +79,7 @@ public class AiServiceHttpUtil {
      *
      * @return
      */
-    public static HostnameVerifier getIgnoreSslHostnameVerifier() {
+    private static HostnameVerifier getIgnoreSslHostnameVerifier() {
         return new HostnameVerifier() {
             @Override
             public boolean verify(String arg0, SSLSession arg1) {
