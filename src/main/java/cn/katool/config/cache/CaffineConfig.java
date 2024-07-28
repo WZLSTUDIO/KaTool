@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @Data
+@RefreshScope
 @ConfigurationProperties("katool.util.cache.caffeine")
 public class CaffineConfig {
     Boolean  enable = false;

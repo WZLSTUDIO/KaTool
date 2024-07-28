@@ -7,6 +7,7 @@ import cn.katool.services.ai.model.dto.kimi.tools.KimiToolBody;
 import cn.katool.services.ai.model.dto.kimi.tools.functions.KimiFunctionBody;
 import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.KimiToolParameters;
 import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.properties.inner.KimiToolParametersPropertiesValue;
+import cn.katool.services.ai.model.entity.kimi.Kimi;
 import cn.katool.services.ai.server.kimi.KimiAIService;
 import org.springframework.util.ObjectUtils;
 import reactor.util.function.Tuple3;
@@ -15,11 +16,15 @@ import reactor.util.function.Tuple4;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+/**
+ * 部分构建可以使用KimiTuples工具来构建
+ */
 public class KimiAIServiceFactory {
     private static KimiChatRequest createKimiChatRequest(String kimiModel,List<KimiToolBody> tools) {
         KimiChatRequest kimiChatRequest = new KimiChatRequest();
         kimiChatRequest.setModel(kimiModel)
-                .setMax_tokens(KimiAiUtils.getIniterToken(kimiModel));
+                .setMax_tokens(KimiAiCommonUtils.getIniterToken(kimiModel));
         kimiChatRequest.setTools(tools);
         return kimiChatRequest;
     }
@@ -45,19 +50,29 @@ public class KimiAIServiceFactory {
 
 
     public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
+                                                              PromptTemplateDrive promptTemplateDrive,
+                                                              Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
+        return createDefualtKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true);
+    }
+    public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
                                                            PromptTemplateDrive promptTemplateDrive,
-                                                           Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
+                                                           Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig,Boolean autoUpgrate) {
         KimiAIService kimiAIService = createEmptyService(promptTemplateDrive, null!=toolsConfig?toolsConfig.keySet():null);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getToolsDefault(toolsConfig));
-        kimiAIService.setChatRequest(kimiChatRequest);
+        kimiAIService.setChatRequest(kimiChatRequest).setEnableAutoUpgrade(autoUpgrate);
         return kimiAIService;
     }
     public static <T> KimiAIService createKimiAiService(String kimiModel,
+                                                        PromptTemplateDrive promptTemplateDrive,
+                                                        Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig) {
+        return createKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true);
+    }
+    public static <T> KimiAIService createKimiAiService(String kimiModel,
                                                     PromptTemplateDrive promptTemplateDrive,
-                                                    Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig) {
+                                                    Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig,Boolean autoUpgrate) {
         KimiAIService kimiAIService = createEmptyService(promptTemplateDrive,null!=toolsConfig?toolsConfig.keySet():null);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getTools(toolsConfig));
-        kimiAIService.setChatRequest(kimiChatRequest);
+        kimiAIService.setChatRequest(kimiChatRequest).setEnableAutoUpgrade(autoUpgrate);
         return kimiAIService;
     }
     private static <T> KimiToolParameters getSearchToolParametersDefaultType(List<Tuple3<String,String,T>> paramsAndSecuma) {

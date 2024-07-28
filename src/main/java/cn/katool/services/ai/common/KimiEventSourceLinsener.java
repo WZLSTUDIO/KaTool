@@ -113,12 +113,6 @@ public class KimiEventSourceLinsener extends EventSourceListener {
                     if(toolCalls != null && toolCalls.size() > 0 && null != kimiFunctionDriverMap && !kimiFunctionDriverMap.isEmpty()) {
                         ArrayList<ToolCalls> toolCallBodys = new ArrayList<>();
                         message.setTool_calls(toolCallBodys);
-//                        if (StringUtils.isNotBlank(upRole)){
-//                            KimiAiMergeMessage msg = delta;
-//                            msg.setRole(upRole);
-//                            msg.setContent(localContent.toString());
-//                            history.add(msg);
-//                        }
                         toolCalls.forEach(toolCall-> {
                             Integer toolCallIndex = toolCall.getIndex();
                             int toolCallBodysSize = toolCallBodys.size();
@@ -156,13 +150,6 @@ public class KimiEventSourceLinsener extends EventSourceListener {
                                 }
                             }
                             message.getTool_calls().set(toolCallIndex, tool_call_object);
-//                            String result = kimiFunctionDriverMap.get(functionName).apply(new Gson().fromJson(arguments, Map.class));
-//                            KimiAiToolCallsMessage reqMsg = new KimiAiToolCallsMessage();
-//                            reqMsg.setTool_call_id(toolCallId)
-//                                    .setName(functionName)
-//                                    .setContent(result)
-//                                    .setRole(CommonAIRoleEnum.TOOL.getRole());
-//                            this.history.add(reqMsg);
                         });
                     }else{
                         addLocalContent(response);
@@ -235,7 +222,7 @@ public class KimiEventSourceLinsener extends EventSourceListener {
             history.add(msg);
         }
         int code = response.code();
-        if( code<200||code>299){
+        if(code<200||code>299){
             eventCancel(eventSource);
             ResponseBody body = response.body();
             throw new KaToolException(ErrorCode.OPER_ERROR, KimiGsonFactory.create().fromJson(body.string(), KimiError.class).getError().getMessage());

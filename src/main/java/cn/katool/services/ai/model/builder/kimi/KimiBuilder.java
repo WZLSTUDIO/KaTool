@@ -1,9 +1,11 @@
 package cn.katool.services.ai.model.builder.kimi;
+import cn.hutool.core.bean.BeanUtil;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.common.CopyOnTransmittableThreadLocal;
 import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.CommonAIService;
+import cn.katool.services.ai.common.KimiAiCommonUtils;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
 import cn.katool.services.ai.model.entity.ErrorMessage;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
@@ -12,7 +14,9 @@ import com.alibaba.ttl.TransmittableThreadLocal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.BeanUtils;
+import cn.hutool.core.bean.BeanUtil;;
+
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -38,7 +42,7 @@ public class KimiBuilder extends KimiCommonBuilder{
         }
         private KimiBuilder solveStepWithMethodName(){
             KimiBuilder kimiBuilder = KimiBuilder.create();
-            BeanUtils.copyProperties(this, kimiBuilder);
+            BeanUtil.copyProperties(this, kimiBuilder);
             String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
             KimiBuilderEnum target = KimiBuilderEnum.valueOf(methodName.toUpperCase(Locale.ROOT));
             validStatus(target);
@@ -83,20 +87,26 @@ public class KimiBuilder extends KimiCommonBuilder{
             return  solveStepWithMethodName();
         }
         public Kimi build(AiServiceHttpUtil httpUtil){
-            return build(httpUtil,null);
+            return build(httpUtil, (Map<String, String>) null);
+        }
+        public Kimi build(AiServiceHttpUtil httpUtil,Boolean enableAutoUpgrade){
+            return build(httpUtil,null,enableAutoUpgrade);
         }
 
-        public Kimi build(AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders){
-            return build(KimiConfig.getKimiKey(),httpUtil,cacheHeaders);
+        public Kimi build(AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders,Boolean enableAutoUpgrade){
+            return build(KimiConfig.KIMI_API_KEY,httpUtil,cacheHeaders,enableAutoUpgrade);
         }
-        public Kimi build(String kimiApiKey,AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders){
+        public Kimi build(AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders){
+            return build(KimiConfig.KIMI_API_KEY,httpUtil,cacheHeaders,KimiConfig.KIMI_AUTO_UPGRADE);
+        }
+        public Kimi build(List<String> kimiApiKeyList, AiServiceHttpUtil httpUtil, Map<String, String> cacheHeaders,Boolean enableAutoUpgrade){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;
-            return new Kimi(this,kimiApiKey,new CopyOnTransmittableThreadLocal<String>(){
+            return new Kimi(this,kimiApiKeyList,new CopyOnTransmittableThreadLocal<String>(){
                 @Override
                 protected String initialValue() {
                     return "application/json";
                 }
-            },httpUtil,cacheHeaders);
+            },httpUtil,cacheHeaders,enableAutoUpgrade);
         }
     }

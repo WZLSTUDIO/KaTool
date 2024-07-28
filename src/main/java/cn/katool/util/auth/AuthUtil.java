@@ -7,7 +7,7 @@ import cn.katool.constant.AuthConstant;
 import io.netty.util.internal.StringUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import cn.hutool.core.bean.BeanUtil;;
 import org.springframework.util.ObjectUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
@@ -59,7 +59,7 @@ public class AuthUtil<T> {
         Object payloadEntity = null;
         try {
             payloadEntity = clazz.newInstance();
-            BeanUtils.copyProperties(payloadObj,payloadEntity);
+            BeanUtil.copyProperties(payloadObj,payloadEntity);
             payload.put("body", payloadEntity);
         } catch (InstantiationException e) {
             throw new RuntimeException(e);

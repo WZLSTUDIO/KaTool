@@ -3,7 +3,7 @@ import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.model.entity.ErrorMessage;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
 import com.alibaba.excel.util.StringUtils;
-import org.springframework.beans.BeanUtils;
+import cn.hutool.core.bean.BeanUtil;;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.Map;
 public class KimiCommonBuilder {
     protected KimiBuilder devailParam(KimiBuilder builder,Object value){
         KimiBuilder res =KimiBuilder.create();
-        BeanUtils.copyProperties(builder,res);
+        BeanUtil.copyProperties(builder,res);
         String url = builder.getUrl();
         if(url.charAt(url.length()-1) != '/'){
             url += "/";
@@ -38,7 +38,7 @@ public class KimiCommonBuilder {
             url += argName+ "[" +key+ "]" + "=" + value;
         }
         KimiBuilder kimiBuilder = KimiBuilder.create();
-        BeanUtils.copyProperties(builder,kimiBuilder);
+        BeanUtil.copyProperties(builder,kimiBuilder);
         kimiBuilder.setUrl(url);
         return kimiBuilder;
     }

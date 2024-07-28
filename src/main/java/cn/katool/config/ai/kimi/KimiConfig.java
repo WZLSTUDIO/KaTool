@@ -2,11 +2,14 @@ package cn.katool.config.ai.kimi;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 
+import jdk.nashorn.internal.ir.annotations.Reference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -24,40 +27,26 @@ import java.util.stream.Collectors;
 @ComponentScan("cn.katool.*")
 @Configuration("KimiConfig")
 @ConfigurationProperties("katool.util.ai.kimi")
+@RefreshScope
 public class KimiConfig {
     public static final String KIMI_BASE_URL = "https://api.moonshot.cn/v1";
     public static List<String> KIMI_API_KEY = Arrays.asList("");
+    public static Boolean KIMI_AUTO_UPGRADE = false;
     public List<String> key = Arrays.asList("");
-    @Bean
-    public void KimiConfigInit(){
-        log.info("KimiConfigInit");
-        KIMI_API_KEY = key;
+    public Boolean enableAutoUpgrade = true;
+
+    @Value("${katool.util.ai.kimi.key}")
+    public void KimiConfigInit(List<String> key){
+        KIMI_API_KEY = this.key = key;
+    }
+
+    @Value("${katool.util.ai.kimi.enableAutoUpgrade}")
+    public void KimiConfigInit(Boolean enableAutoUpgrade){
+        KIMI_AUTO_UPGRADE = this.enableAutoUpgrade = enableAutoUpgrade;
     }
 
 
-    private volatile static Queue<String> keyUsingMap = new ConcurrentLinkedDeque<>();
 
-    public static String getKimiKey(){
-        List<String> reduce_key = KIMI_API_KEY.stream().filter(o -> !keyUsingMap.contains(o)).collect(Collectors.toList());
-        List<String> expire_key = keyUsingMap.stream().filter(o -> !KIMI_API_KEY.contains(o)).collect(Collectors.toList());
-        if (keyUsingMap.isEmpty()||keyUsingMap.size()!=KIMI_API_KEY.size()||!reduce_key.isEmpty()) {
-            // init to map
-            if (KIMI_API_KEY.isEmpty()) {
-                throw new KaToolException(ErrorCode.PARAMS_ERROR, "请设置KimiAI-key");
-            }
-            for (String s : reduce_key) {
-                keyUsingMap.add(s);
-            }
-        }
-        if (!expire_key.isEmpty()){
-            keyUsingMap.removeIf(v->expire_key.contains(v));
-        }
-        String t1 = "";
-        synchronized (keyUsingMap) {
-            t1 = keyUsingMap.poll();
-            keyUsingMap.offer(t1);
-        }
-        return t1;
-    }
+
 
 }

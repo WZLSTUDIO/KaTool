@@ -10,6 +10,7 @@
 package cn.katool.config.util;
 import lombok.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.*;
 import java.util.concurrent.TimeUnit;
 @Configuration("LockConfig")
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Scope("singleton")            //  开启单例模式
 @ConfigurationProperties("katool.util.redis.lock")
 @DependsOn({"KaTool-Init"})
+@RefreshScope
 public class LockConfig {
 //    @Value("katool.lock")
     private Long internalLockLeaseTime = 30L;

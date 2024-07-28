@@ -10,6 +10,7 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
+@RefreshScope
 @DependsOn({"katool-cache"})
 public class CacheUtilsConfig {
     @Resource

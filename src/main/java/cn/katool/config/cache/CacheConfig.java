@@ -12,6 +12,7 @@ import net.sf.ehcache.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.*;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ import java.util.function.Supplier;
 @ComponentScan("cn.katool.*")
 @Configuration("CacheConfig")
 @ConfigurationProperties("katool.util.cache")
+@RefreshScope
 public class CacheConfig {
     public static final String CAFFEINE = "caffeine";
     public static final String EHCACHE = "ehcache";

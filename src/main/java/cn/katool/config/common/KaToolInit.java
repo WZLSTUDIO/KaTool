@@ -3,7 +3,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 @Component
 public class KaToolInit {
-    public static String version = "1.9.6.GAMA";
+    public static String version = "1.9.7.ALPHA";
     @Bean("KaTool-Init")
     void katoolConfig() {
         System.out.println(" ___  __    ________  _________  ________  ________  ___\n" +

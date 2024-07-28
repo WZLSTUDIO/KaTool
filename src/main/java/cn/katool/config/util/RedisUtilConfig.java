@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.Resource;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 @NoArgsConstructor
 @ComponentScan("cn.katool.*")
 @Scope("singleton")            //  开启单例模式
+@RefreshScope
 public class RedisUtilConfig {
     @Resource
     CacheConfig cacheConfig;

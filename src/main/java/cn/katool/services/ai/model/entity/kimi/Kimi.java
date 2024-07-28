@@ -5,7 +5,7 @@ import cn.katool.Exception.KaToolException;
 import cn.katool.config.ai.kimi.KimiProxyConfig;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
 import cn.katool.services.ai.common.KimiAIServiceFactory;
-import cn.katool.services.ai.common.KimiAiUtils;
+import cn.katool.services.ai.common.KimiAiCommonUtils;
 import cn.katool.services.ai.common.KimiEventSourceLinsener;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
 import cn.katool.services.ai.constant.kimi.KimiModel;
@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.internal.sse.RealEventSource;
 import okhttp3.sse.EventSource;
+import org.springframework.util.CollectionUtils;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
@@ -40,6 +41,7 @@ import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -53,9 +55,23 @@ import java.util.function.Function;
 public class Kimi{
     private volatile Map<String, String> cacheHeaders;
     volatile KimiBuilder kimiBuilder;
-    volatile String key;
+    volatile List<String> keys;
     volatile Proxy proxy;
     volatile AiServiceHttpUtil httpUtil;
+    volatile Boolean enableAutoUpgrade = true;
+
+    public Boolean getEnableAutoUpgrade() {
+        return enableAutoUpgrade;
+    }
+
+    public Kimi enableAutoUpgrade(Boolean enableAutoUpgrade) {
+        if (null != enableAutoUpgrade){
+            this.enableAutoUpgrade = enableAutoUpgrade;
+        }
+        return this;
+    }
+
+    private volatile Queue<String> keyCircleQueue = new ConcurrentLinkedDeque<>();
     volatile TransmittableThreadLocal<String> contentType = new TransmittableThreadLocal<String>(){
         @Override
         protected String initialValue() {
@@ -74,12 +90,17 @@ public class Kimi{
             return "{}";
         }
     };
-    public Kimi(KimiBuilder kimiBuilder, String key, TransmittableThreadLocal<String> contentType, AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders) {
+    public Kimi(KimiBuilder kimiBuilder,
+                List<String> keyList,
+                TransmittableThreadLocal<String> contentType,
+                AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders,
+                Boolean enableAutoUpgrade) {
         this.kimiBuilder = kimiBuilder;
-        this.key = key;
+        this.keys = keyList;
         this.contentType = contentType;
         this.httpUtil = httpUtil;
         this.cacheHeaders = cacheHeaders;
+        this.enableAutoUpgrade=enableAutoUpgrade;
     }
     public Kimi proxy(Proxy proxy){
         if (null == proxy){
@@ -98,11 +119,10 @@ public class Kimi{
             throw new KaToolException(ErrorCode.OPER_ERROR,Thread.currentThread().getStackTrace()[2].getMethodName()+" method is not supported in file mode");
         }
     }
-    public Kimi auth(String key){
-        if (StringUtils.isBlank(key)){
-            return this;
+    public Kimi auth(List<String> keyList){
+        if (!CollectionUtils.isEmpty(keyList)){
+            this.keys = keyList;
         }
-        this.key = key;
         return this;
     }
     public Kimi contentType(String type){
@@ -114,7 +134,7 @@ public class Kimi{
     }
 
     private <T> Request.Builder getRequest(String method, T body){
-        if (StringUtils.isBlank(key)){
+        if (CollectionUtils.isEmpty(keys)){
             throw new KaToolException(ErrorCode.OPER_ERROR,"kimi-key is null");
         }
         Request.Builder requestBuilder = new Request.Builder();
@@ -135,7 +155,7 @@ public class Kimi{
         requestBuilder.method(method,
                 okhttp3.RequestBody.create(MediaType.parse(this.contentType.get()+"; charset=utf-8"),
                         requestJson));
-        requestBuilder.addHeader("Authorization", "Bearer " + key);
+        requestBuilder.addHeader("Authorization", "Bearer " + KimiAiCommonUtils.getKeyByCircleQueue(keys,keyCircleQueue));
         return requestBuilder;
     }
 
@@ -155,34 +175,7 @@ public class Kimi{
             kimiError.setRequestBody(requestBody);
             if (contains || kimiError.getError().getMessage().contains("Your request exceeded model token limit")){
                 KimiChatRequest kimiChatRequest = (KimiChatRequest) requestBody;
-                String model = kimiChatRequest.getModel();
-                Long maxToken = KimiAiUtils.getMaxToken(model);
-                Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null).setChatRequest(kimiChatRequest).countToken(kimiChatRequest.getMessages());
-                if (maxToken < aLong) {
-                    String nextModel = KimiAiUtils.getNextModel(model);
-                    Long nextMaxToken = KimiAiUtils.getMaxToken(nextModel);
-                    if (nextMaxToken < aLong) {
-                        nextModel = KimiAiUtils.getNextModel(nextModel);
-                        nextMaxToken = KimiAiUtils.getMaxToken(nextModel);
-                    }
-                    log.warn("KimiAiService检测到回复断言，尝试扩容并自动请求下文中... request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,nextMaxToken);
-                    kimiChatRequest.setModel(nextModel);
-                    kimiChatRequest.setMax_tokens(nextMaxToken-aLong);
-                }
-                else{
-                    log.warn("KimiAiService检测到回复断言，尝试扩容并自动请求下文中... request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,maxToken-aLong);
-                    kimiChatRequest.setMax_tokens(maxToken-aLong);
-                }
-//                List<CommonAIMessage> messages = kimiChatRequest.getMessages();
-//                KimiChatResponse response = KimiGsonFactory.create().fromJson(resJson, responseClass);
-//                KimiAiMergeMessage message = response.getChoices().get(0).getMessage();
-//                message.setPartial(true);
-//                String content = message.getContent();
-//                if (!content.startsWith("result with:") && !"result with:".equals(messages.get(messages.size()-1).getContent())){
-//                    content = "result with:" + content;
-//                    message.setContent(content);
-//                    messages.add(message);
-//                }
+                kimiChatRequest = KimiAiCommonUtils.upgrade(kimiChatRequest);
                 Request newRequest = this.getRequest(request.method(), kimiChatRequest).build();
                 return detailRequest(newRequest, responseClass, errorResolve);
             }
@@ -251,7 +244,7 @@ public class Kimi{
 
     public <T extends RequestBody> EventSource STREAM(T request, Map<String,String>headers, KimiEventSourceLinsener kimiEventSourceLinsener,Function<KimiError<T>,Boolean> errorResolve){
         okhttp3.RequestBody requestBody = okhttp3.RequestBody.create(MediaType.parse("text/event-stream"),KimiGsonFactory.create().toJson(request));
-        if (StringUtils.isBlank(key)){
+        if (CollectionUtils.isEmpty(keys)){
             throw new KaToolException(ErrorCode.OPER_ERROR,"kimi-key is null");
         }
 
@@ -260,7 +253,7 @@ public class Kimi{
         if (headers !=null && !headers.isEmpty()){
             header.headers(Headers.of(headers));
         }
-        header.addHeader(Header.AUTHORIZATION.getValue(), "Bearer " + key)
+        header.addHeader(Header.AUTHORIZATION.getValue(), "Bearer " + KimiAiCommonUtils.getKeyByCircleQueue(keys,keyCircleQueue))
                 .addHeader("Connection", "keep-alive");
         Request req = header
                 .post(requestBody)

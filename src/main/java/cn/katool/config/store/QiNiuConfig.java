@@ -17,6 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.*;
 import org.springframework.stereotype.Component;
 @Configuration("QiNiuConfig")
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @Data
 @ComponentScan("cn.katool.*")
-@Scope("singleton")
+@RefreshScope
 public class QiNiuConfig {
     /**
      * ak

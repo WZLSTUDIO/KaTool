@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public interface CommonAIService<EQUERY extends ErrorMessage,EFILE extends ErrorMessage,ECHAT extends ErrorMessage>{
     CommonAIService setProxy(String url,int port);
-    CommonAIService auth(String key);
+    CommonAIService auth(List<String> key);
     PromptTemplateDrive getPromptTemplateDrive();
     CommonAIService setPromptTemplateDrive(PromptTemplateDrive promptTemplateDrive);
     CommonAIService setJsonTemplate(String jsonTemplate);
