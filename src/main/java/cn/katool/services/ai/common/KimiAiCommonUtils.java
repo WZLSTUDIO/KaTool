@@ -36,10 +36,10 @@ public class KimiAiCommonUtils {
         }
         return t1;
     }
-    public static KimiChatRequest upgrade(KimiChatRequest kimiChatRequest) {
+    public static KimiChatRequest upgrade(List<String>keys,KimiChatRequest kimiChatRequest) {
         String model = kimiChatRequest.getModel();
         Long maxToken = KimiAiCommonUtils.getMaxToken(model);
-        Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null).setChatRequest(kimiChatRequest).countToken(kimiChatRequest.getMessages());
+        Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null,false).setKeys(keys).setChatRequest(kimiChatRequest).countToken(kimiChatRequest.getMessages());
         if (maxToken < aLong) {
             String nextModel = KimiAiCommonUtils.getNextModel(model);
             Long nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);

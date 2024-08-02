@@ -2,6 +2,7 @@ package cn.katool.services.ai.model.entity.kimi;
 import cn.hutool.http.*;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
+import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiProxyConfig;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
 import cn.katool.services.ai.common.KimiAIServiceFactory;
@@ -72,27 +73,12 @@ public class Kimi{
     }
 
     private volatile Queue<String> keyCircleQueue = new ConcurrentLinkedDeque<>();
-    volatile TransmittableThreadLocal<String> contentType = new TransmittableThreadLocal<String>(){
-        @Override
-        protected String initialValue() {
-            return "application/json";
-        }
-    };
-    volatile TransmittableThreadLocal<RequestBody> requesetResultTempStorage = new TransmittableThreadLocal<RequestBody>(){
-        @Override
-        protected RequestBody initialValue() {
-            return null;
-        }
-    };
-    volatile TransmittableThreadLocal<String> responseResultTempStorage = new TransmittableThreadLocal<String>(){
-        @Override
-        protected String initialValue() {
-            return "{}";
-        }
-    };
+    volatile SessionPackageTheadLocalAdaptor<String> contentType = new SessionPackageTheadLocalAdaptor<String>().set("application/json");
+    volatile SessionPackageTheadLocalAdaptor<RequestBody> requesetResultTempStorage = new SessionPackageTheadLocalAdaptor<RequestBody>().set(null);
+    volatile SessionPackageTheadLocalAdaptor<String> responseResultTempStorage = new SessionPackageTheadLocalAdaptor<String>().set("{}");
     public Kimi(KimiBuilder kimiBuilder,
                 List<String> keyList,
-                TransmittableThreadLocal<String> contentType,
+                SessionPackageTheadLocalAdaptor<String> contentType,
                 AiServiceHttpUtil httpUtil,Map<String, String> cacheHeaders,
                 Boolean enableAutoUpgrade) {
         this.kimiBuilder = kimiBuilder;
@@ -152,9 +138,13 @@ public class Kimi{
         Type type = new TypeToken<T>() {
         }.getType();
         this.requesetResultTempStorage.set((RequestBody) body);
-        requestBuilder.method(method,
-                okhttp3.RequestBody.create(MediaType.parse(this.contentType.get()+"; charset=utf-8"),
-                        requestJson));
+        if (method.toUpperCase(Locale.ROOT).equals("GET")){
+            requestBuilder.get();
+        }else {
+            requestBuilder.method(method,
+                    okhttp3.RequestBody.create(MediaType.parse(this.contentType.get()),
+                            requestJson));
+        }
         requestBuilder.addHeader("Authorization", "Bearer " + KimiAiCommonUtils.getKeyByCircleQueue(keys,keyCircleQueue));
         return requestBuilder;
     }
@@ -164,6 +154,7 @@ public class Kimi{
         Response httpResponse = httpUtil.getClient().newCall(request)
                 .execute();
         String resJson = httpResponse.body().string();
+        log.debug("KimiAI - [REQUEST::response] JSON is {}",resJson);
         boolean contains = resJson.contains("\"finish_reason\":\"length\"");
         if (!httpResponse.isSuccessful()|| contains){
             KimiError<T> kimiError =
@@ -173,14 +164,14 @@ public class Kimi{
 
             T requestBody = (T) this.requesetResultTempStorage.get();
             kimiError.setRequestBody(requestBody);
-            if (contains || kimiError.getError().getMessage().contains("Your request exceeded model token limit")){
+            if (contains || kimiError.getError().getMessage().contains("Your request exceeded model token limit")||kimiError.getError().getMessage().contains("rate limit, current: ")){
                 KimiChatRequest kimiChatRequest = (KimiChatRequest) requestBody;
-                kimiChatRequest = KimiAiCommonUtils.upgrade(kimiChatRequest);
+                kimiChatRequest = KimiAiCommonUtils.upgrade(keys,kimiChatRequest);
                 Request newRequest = this.getRequest(request.method(), kimiChatRequest).build();
                 return detailRequest(newRequest, responseClass, errorResolve);
             }
             if (errorResolve != null) {
-                log.error("kimi request error:{}", kimiError.getError().getMessage());
+                log.warn("kimi request error:{}", kimiError.getError().getMessage());
                 if (errorResolve.apply(kimiError)) {
                     T reqBody = kimiError.getRequestBody();
                     Request newRequest = this.getRequest(request.method(), reqBody).build();
@@ -234,7 +225,6 @@ public class Kimi{
         });
         Optional.ofNullable(headers).ifPresent(v-> req.get().headers(Headers.of(v)));
         R r = detailRequest(req.get().build(), responseClass, errorResolve);
-        log.debug("KimiAI - [REQUEST::response] JSON is {}",responseResultTempStorage.get());
         return r;
     }
 
@@ -271,8 +261,10 @@ public class Kimi{
         this.contentType("multipart/form-data");
         Request.Builder post = this.getRequest(Method.POST,null);
         MultipartBody.Builder builder = new MultipartBody.Builder();
+        builder.setType(MediaType.parse(this.contentType.get()));
         builder.addFormDataPart("purpose","file-extract");
-        builder.addFormDataPart("file", file.getName(), okhttp3.RequestBody.create(MediaType.parse("application/octet-stream"), file));
+        builder.addFormDataPart("file",
+                file.getName(), okhttp3.RequestBody.create(MediaType.parse("application/octet-stream"), file));
         post.post(builder.build());
         return detailRequest(post.build(),KimiFileMeta.class,errorResolve);
     };
@@ -283,6 +275,7 @@ public class Kimi{
         files.parallelStream().forEach(file->{
             Request.Builder post = this.getRequest(Method.POST,null);
             MultipartBody.Builder builder = new MultipartBody.Builder();
+            builder.setType(MediaType.parse(this.contentType.get()));
             builder.addFormDataPart("purpose","file-extract");
             builder.addFormDataPart("file", file.getName(), okhttp3.RequestBody.create(MediaType.parse("application/octet-stream"), file));
             post.post(builder.build());

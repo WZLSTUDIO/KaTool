@@ -1,6 +1,5 @@
 package cn.katool.config.ai.kimi;
 import ch.qos.logback.classic.util.CopyOnInheritThreadLocal;
-import cn.katool.common.CopyOnTransmittableThreadLocal;
 import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
 import lombok.AllArgsConstructor;
@@ -28,8 +27,8 @@ public class KimiProxyConfig {
     Integer port;
     @Bean
     public void KimiProxyConfigInit(){
-        ENABLE = enable;
-        HOST = host;
-        PORT = port;
+        ENABLE = enable==null?ENABLE:enable;
+        HOST = host==null?HOST:host;
+        PORT = port==null?PORT:port;
     }
 }

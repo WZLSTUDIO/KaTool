@@ -338,8 +338,6 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Resource
-    TransactionTemplate transactionTemplate;
     @Around("execution(* cn.katool.util.database.nosql.RedisUtils.putZSet(*,*))")
     public Object aroundByPutZSet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {

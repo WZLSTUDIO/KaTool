@@ -4,7 +4,7 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
-import cn.katool.common.CopyOnTransmittableThreadLocal;
+import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
@@ -45,6 +45,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.sse.EventSource;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -97,38 +98,42 @@ public class KimiAIService implements CommonAIService<
     @Setter
     private volatile Map<String,String> cacheHeaders = null;
 
-    private volatile CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>> historyLocalMap = new CopyOnTransmittableThreadLocal<ArrayList<CommonAIMessage>>() {
-        @Override
-        protected ArrayList<CommonAIMessage> initialValue() {
-            return new ArrayList<>();
-        }
-    };;
-    private volatile CopyOnTransmittableThreadLocal<String> jsonTemplate = new CopyOnTransmittableThreadLocal<String>() {
-        @Override
-        protected String initialValue() {
-            return "";
-        }
-    };
-    private volatile CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest;
+    private volatile SessionPackageTheadLocalAdaptor<ArrayList<CommonAIMessage>> historyLocalMap;
+    private volatile SessionPackageTheadLocalAdaptor<String> jsonTemplate;
+    private volatile SessionPackageTheadLocalAdaptor<KimiChatRequest> chatRequest;
+
+    @Getter
+    @Setter
+    private volatile Boolean multi=KimiConfig.KIMI_MULTI;
 
     public KimiAIService() {
         promptTemplateDrive = new PromptTemplateDrive("我是人工智能AI-KIMI，请你对我进行提问，我会给你最准确的回答。");
-        this.chatRequest = new CopyOnTransmittableThreadLocal<KimiChatRequest>(){
-            @Override
-            protected KimiChatRequest initialValue() {
-                return new KimiChatRequest();
-            }
-        };
+        this.chatRequest = new SessionPackageTheadLocalAdaptor<KimiChatRequest>(multi);
+        this.jsonTemplate = new SessionPackageTheadLocalAdaptor<String>(multi);
+        this.historyLocalMap = new SessionPackageTheadLocalAdaptor<ArrayList<CommonAIMessage>>(multi);
+        this.chatRequest.set(new KimiChatRequest<>());
+        this.jsonTemplate.set("");
+        this.historyLocalMap.set(new ArrayList<>());
+    }
+    public KimiAIService(PromptTemplateDrive promptTemplateDrive) {
+        this.chatRequest = new SessionPackageTheadLocalAdaptor<KimiChatRequest>(multi);
+        this.jsonTemplate = new SessionPackageTheadLocalAdaptor<String>(multi);
+        this.historyLocalMap = new SessionPackageTheadLocalAdaptor<ArrayList<CommonAIMessage>>(multi);
+        this.chatRequest.set(new KimiChatRequest<>());
+        this.jsonTemplate.set("");
+        this.historyLocalMap.set(new ArrayList<>());
+        this.promptTemplateDrive = promptTemplateDrive;
+        this.getHistory().add(promptTemplateDrive.generateTemplate());
     }
     public KimiAIService setHistory(ArrayList<CommonAIMessage> historyLocalMap) {
         this.historyLocalMap.set(historyLocalMap);
         return this;
     }
-    public KimiAIService setJsonTemplate(CopyOnTransmittableThreadLocal<String> jsonTemplate) {
+    public KimiAIService setJsonTemplate(SessionPackageTheadLocalAdaptor<String> jsonTemplate) {
         this.jsonTemplate = jsonTemplate;
         return this;
     }
-    public KimiAIService setChatRequest(CopyOnTransmittableThreadLocal<KimiChatRequest> chatRequest) {
+    public KimiAIService setChatRequest(SessionPackageTheadLocalAdaptor<KimiChatRequest> chatRequest) {
         this.chatRequest = chatRequest;
         return this;
     }
@@ -155,12 +160,8 @@ public class KimiAIService implements CommonAIService<
     public String getJsonTemplate() {
         return jsonTemplate.get();
     }
-    public CopyOnTransmittableThreadLocal<KimiChatRequest> getChatRequest() {
+    public SessionPackageTheadLocalAdaptor<KimiChatRequest> getChatRequest() {
         return chatRequest;
-    }
-    public KimiAIService(PromptTemplateDrive promptTemplateDrive) {
-        this.promptTemplateDrive = promptTemplateDrive;
-        this.getHistory().add(promptTemplateDrive.generateTemplate());
     }
     public KimiAIService openContextCacheMode(String cacheId,Integer dryRun,Integer resetTTL){
         KimiAIService result = new KimiAIService();
@@ -191,22 +192,22 @@ public class KimiAIService implements CommonAIService<
         return kimiAIService;
     }
     @Override
-    public CommonAIService setPromptTemplateDrive(PromptTemplateDrive promptTemplateDrive) {
+    public KimiAIService setPromptTemplateDrive(PromptTemplateDrive promptTemplateDrive) {
         this.promptTemplateDrive = promptTemplateDrive;
         return this;
     }
     @Override
-    public CommonAIService setJsonTemplate(String jsonTemplate) {
+    public KimiAIService setJsonTemplate(String jsonTemplate) {
         this.jsonTemplate.set(jsonTemplate);
         return this;
     }
     @Override
-    public CommonAIService setJsonTemplate(Object dao) {
+    public KimiAIService setJsonTemplate(Object dao) {
         this.jsonTemplate.set(new Gson().toJson(dao));
         return this;
     }
     @Override
-    public CommonAIService claerHistory() {
+    public KimiAIService claerHistory() {
         this.getHistory().clear();
         return this;
     }
@@ -314,6 +315,15 @@ public class KimiAIService implements CommonAIService<
                 messages.add(commonAIMessage);
             }
             if (null!=msg){
+                CommonAIMessage lastRequest = messages.get(messages.size() - 1);
+                if (lastRequest instanceof KimiAiMergeMessage){
+                    KimiAiMergeMessage mergeMessage = (KimiAiMergeMessage) lastRequest;
+                    List<ToolCalls> toolCalls = mergeMessage.getTool_calls();
+                    if (!CollectionUtils.isEmpty(toolCalls)){
+                        messages.remove(messages.size()-1);
+                        messages.remove(messages.size()-1);
+                    }
+                }
                 messages.add(new CommonAIMessage(CommonAIRoleEnum.USER, msg));
             }
         }

@@ -2,7 +2,7 @@ package cn.katool.services.ai.model.builder.kimi;
 import cn.hutool.core.bean.BeanUtil;
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
-import cn.katool.common.CopyOnTransmittableThreadLocal;
+import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.CommonAIService;
 import cn.katool.services.ai.common.KimiAiCommonUtils;
@@ -102,11 +102,8 @@ public class KimiBuilder extends KimiCommonBuilder{
         public Kimi build(List<String> kimiApiKeyList, AiServiceHttpUtil httpUtil, Map<String, String> cacheHeaders,Boolean enableAutoUpgrade){
             this.master = this.status;
             this.status = KimiBuilderEnum.END;
-            return new Kimi(this,kimiApiKeyList,new CopyOnTransmittableThreadLocal<String>(){
-                @Override
-                protected String initialValue() {
-                    return "application/json";
-                }
-            },httpUtil,cacheHeaders,enableAutoUpgrade);
+            SessionPackageTheadLocalAdaptor<String> stringSessionPackageTheadLocalAdaptor = new SessionPackageTheadLocalAdaptor<>();
+            stringSessionPackageTheadLocalAdaptor.set("application/json");
+            return new Kimi(this,kimiApiKeyList, stringSessionPackageTheadLocalAdaptor,httpUtil,cacheHeaders,enableAutoUpgrade);
         }
     }

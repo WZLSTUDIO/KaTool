@@ -1,5 +1,6 @@
 package cn.katool.services.ai.common;
 import cn.hutool.core.lang.Pair;
+import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.constant.kimi.KimiModel;
 import cn.katool.services.ai.model.drive.PromptTemplateDrive;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatRequest;
@@ -28,8 +29,12 @@ public class KimiAIServiceFactory {
         kimiChatRequest.setTools(tools);
         return kimiChatRequest;
     }
-    private static KimiAIService createEmptyService(PromptTemplateDrive promptTemplateDrive, Set<Tuple3<String, String, Function<Map<String, String>, String>>> toolsConfigKey){
+    private static KimiAIService createEmptyService(PromptTemplateDrive promptTemplateDrive, Set<Tuple3<String, String, Function<Map<String, String>, String>>> toolsConfigKey,Boolean multi){
         KimiAIService kimiAIService = new KimiAIService();
+        if (multi==null){
+            multi = KimiConfig.KIMI_MULTI;
+        }
+        kimiAIService.setMulti(multi);
         if (null != promptTemplateDrive) {
             kimiAIService.setPromptTemplateDrive(promptTemplateDrive);
         }
@@ -51,13 +56,13 @@ public class KimiAIServiceFactory {
 
     public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
                                                               PromptTemplateDrive promptTemplateDrive,
-                                                              Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig) {
-        return createDefualtKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true);
+                                                              Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig,Boolean multi) {
+        return createDefualtKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true,multi);
     }
     public static <T>KimiAIService createDefualtKimiAiService(String kimiModel,
                                                            PromptTemplateDrive promptTemplateDrive,
-                                                           Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig,Boolean autoUpgrate) {
-        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive, null!=toolsConfig?toolsConfig.keySet():null);
+                                                           Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple3<String,String,T>>> toolsConfig,Boolean autoUpgrate,Boolean multi) {
+        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive, null!=toolsConfig?toolsConfig.keySet():null,multi);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getToolsDefault(toolsConfig));
         kimiAIService.setChatRequest(kimiChatRequest).setEnableAutoUpgrade(autoUpgrate);
         return kimiAIService;
@@ -65,12 +70,18 @@ public class KimiAIServiceFactory {
     public static <T> KimiAIService createKimiAiService(String kimiModel,
                                                         PromptTemplateDrive promptTemplateDrive,
                                                         Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig) {
-        return createKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true);
+        return createKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true,false);
+    }
+
+    public static <T> KimiAIService createKimiAiService(String kimiModel,
+                                                        PromptTemplateDrive promptTemplateDrive,
+                                                        Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig,Boolean multi) {
+        return createKimiAiService(kimiModel,promptTemplateDrive,toolsConfig,true,multi);
     }
     public static <T> KimiAIService createKimiAiService(String kimiModel,
                                                     PromptTemplateDrive promptTemplateDrive,
-                                                    Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig,Boolean autoUpgrate) {
-        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive,null!=toolsConfig?toolsConfig.keySet():null);
+                                                    Map<Tuple3<String,String,Function<Map<String,String>,String>>,List<Tuple4<String,String,T,String>>> toolsConfig,Boolean autoUpgrate,Boolean multi) {
+        KimiAIService kimiAIService = createEmptyService(promptTemplateDrive,null!=toolsConfig?toolsConfig.keySet():null,multi);
         KimiChatRequest kimiChatRequest = createKimiChatRequest(kimiModel,getTools(toolsConfig));
         kimiAIService.setChatRequest(kimiChatRequest).setEnableAutoUpgrade(autoUpgrate);
         return kimiAIService;

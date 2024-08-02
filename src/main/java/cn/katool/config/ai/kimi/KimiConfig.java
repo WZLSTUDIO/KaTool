@@ -32,16 +32,23 @@ public class KimiConfig {
     public static final String KIMI_BASE_URL = "https://api.moonshot.cn/v1";
     public static List<String> KIMI_API_KEY = Arrays.asList("");
     public static Boolean KIMI_AUTO_UPGRADE = false;
+    public static Boolean KIMI_MULTI = false;
     public List<String> key = Arrays.asList("");
     public Boolean enableAutoUpgrade = true;
+    public Boolean multi = false;
 
-    @Value("${katool.util.ai.kimi.key}")
+    @Value("${katool.util.ai.kimi.key:null}")
     public void KimiConfigInit(List<String> key){
         KIMI_API_KEY = this.key = key;
     }
 
-    @Value("${katool.util.ai.kimi.enableAutoUpgrade}")
-    public void KimiConfigInit(Boolean enableAutoUpgrade){
+    @Value("${katool.util.ai.kimi.multi:false}")
+    public void KimiConfigInitMuilt(Boolean multi){
+        KIMI_MULTI = this.multi = multi;
+    }
+
+    @Value("${katool.util.ai.kimi.enableAutoUpgrade:true}")
+    public void KimiConfigInitAutoUpgrade(Boolean enableAutoUpgrade){
         KIMI_AUTO_UPGRADE = this.enableAutoUpgrade = enableAutoUpgrade;
     }
 
