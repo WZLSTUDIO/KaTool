@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+cn.katool.config.store.QiNiuConfig,\
+cn.katool.config.auth.AuthConfig,\
+cn.katool.config.ai.kimi.KimiConfig 

@@ -1,0 +1,5 @@
+spring:
+    application:
+        name: Katool
+    banner:
+        location: banner.ini
