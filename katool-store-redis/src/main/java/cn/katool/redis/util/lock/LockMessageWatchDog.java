@@ -16,6 +16,7 @@ import java.util.concurrent.locks.LockSupport;
 @Component
 @Slf4j
 public class LockMessageWatchDog implements MessageListener {
+    // todo: 后期优化为redis-zset
     public static volatile ConcurrentHashMap<String,ConcurrentLinkedQueue<Thread>> threadWaitQueue=new ConcurrentHashMap<>();;
     public static final String LOCK_MQ_NAME = "LOCK:RELASE:QUEUE";
     @SneakyThrows

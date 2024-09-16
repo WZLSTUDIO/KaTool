@@ -2,14 +2,12 @@ package cn.katool.services.ai.common;
 
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
-import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.constant.kimi.KimiModel;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,7 +37,9 @@ public class KimiAiCommonUtils {
     public static KimiChatRequest upgrade(List<String>keys,KimiChatRequest kimiChatRequest) {
         String model = kimiChatRequest.getModel();
         Long maxToken = KimiAiCommonUtils.getMaxToken(model);
-        Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null,false).setKeys(keys).setChatRequest(kimiChatRequest).countToken(kimiChatRequest.getMessages());
+        Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null,false)
+                .setKeys(keys).setChatRequest(kimiChatRequest)
+                .countToken(kimiChatRequest.getMessages());
         if (maxToken < aLong) {
             String nextModel = KimiAiCommonUtils.getNextModel(model);
             Long nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);

@@ -1,9 +1,9 @@
 package cn.katool.redis.util.database.nosql.interceptor;
+import cn.katool.common.LocalLockMap;
 import cn.katool.redis.config.util.RedisUtilConfig;
 import cn.katool.redis.util.database.nosql.RedisUtils;
 import cn.katool.store.util.cache.policy.CachePolicy;
 import cn.katool.store.util.cache.policy.impl.DefaultCachePolicy;
-import cn.katool.util.lock.LocalLockMap;
 import com.alibaba.excel.util.BooleanUtils;
 import cn.hutool.core.lang.Pair;
 import lombok.SneakyThrows;
@@ -80,7 +80,7 @@ public class RedisUtilsInterceptor {
         }
         return o;
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.get*(*))||execution(* cn.katool.util.database.nosql.RedisUtils.get*(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.get*(*))||execution(* cn.katool.redis.util.database.nosql.RedisUtils.get*(*,*))")
     public Object aroundByGet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
             @Override
@@ -112,7 +112,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.leftPopList(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.leftPopList(*,*))")
     public Object aroundByLeftPopGet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
             @SneakyThrows
@@ -138,7 +138,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.rightPopList(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.rightPopList(*,*))")
     public Object aroundByRightPopGet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
             @Override
@@ -164,7 +164,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.getZSetByRange(..))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.getZSetByRange(..))")
     public Object aroundByGetByRange(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithReadLock(joinPoint, new Function<Boolean, Object>() {
             @Override
@@ -193,7 +193,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.remove(..))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.remove(..))")
     public Object aroundByRemove(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @Override
@@ -218,9 +218,9 @@ public class RedisUtilsInterceptor {
         Object proceed = joinPoint.proceed();
         return proceed;
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.set*(..)) ||" +
-            " execution(* cn.katool.util.database.nosql.RedisUtils.put*(*,*)) ||" +
-            " execution(* cn.katool.util.database.nosql.RedisUtils.push*(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.set*(..)) ||" +
+            " execution(* cn.katool.redis.util.database.nosql.RedisUtils.put*(*,*)) ||" +
+            " execution(* cn.katool.redis.util.database.nosql.RedisUtils.push*(*,*))")
     public Object aroundBySetOrPut(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @SneakyThrows
@@ -237,7 +237,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.push*(*,*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.push*(*,*,*))")
     public Object aroundByPush(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @SneakyThrows
@@ -264,7 +264,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.delMap(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.delMap(*,*))")
     public Object aroundByHRemove(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @SneakyThrows
@@ -288,7 +288,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.putZSet(*,*,Double))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.putZSet(*,*,Double))")
     public Object aroundByPutZsetByScore(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @Override
@@ -334,7 +334,7 @@ public class RedisUtilsInterceptor {
             }
         });
     }
-    @Around("execution(* cn.katool.util.database.nosql.RedisUtils.putZSet(*,*))")
+    @Around("execution(* cn.katool.redis.util.database.nosql.RedisUtils.putZSet(*,*))")
     public Object aroundByPutZSet(ProceedingJoinPoint joinPoint) throws Throwable {
         return AroundWithWriteLock(joinPoint, new Function<Boolean, Object>() {
             @Override

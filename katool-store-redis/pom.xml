@@ -5,12 +5,12 @@
     <parent>
         <groupId>cn.katool</groupId>
         <artifactId>KaTool</artifactId>
-        <version>1.9.7.SNAPSHOT</version>
+        <version>1.9.7.ALPHA</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>cn.katool</groupId>
     <artifactId>katool-store-redis</artifactId>
-    <version>1.9.7.SNAPSHOT</version>
+    <version>${katool.version}</version>
     <name>katool-store-redis</name>
     <description>katool-store-redis</description>
     <properties>
@@ -27,12 +27,12 @@
         <dependency>
             <groupId>cn.katool</groupId>
             <artifactId>katool-common</artifactId>
-            <version>1.9.7.SNAPSHOT</version>
+            <version>${katool.version}</version>
         </dependency>
         <dependency>
             <groupId>cn.katool</groupId>
             <artifactId>katool-store-common</artifactId>
-            <version>1.9.7.SNAPSHOT</version>
+            <version>${katool.version}</version>
         </dependency>
     </dependencies>
     <!--开源协议...-->
@@ -64,16 +64,16 @@
     </scm>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <compilerArgs>
-                        <arg>-g:none</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>3.8.1</version>-->
+<!--                <configuration>-->
+<!--                    <compilerArgs>-->
+<!--                        <arg>-g:none</arg>-->
+<!--                    </compilerArgs>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

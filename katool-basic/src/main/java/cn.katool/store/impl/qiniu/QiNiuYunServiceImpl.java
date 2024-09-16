@@ -8,7 +8,6 @@
  * @Blog: https://www.wzl1.top/
  */
 package cn.katool.store.impl.qiniu;
-import cn.katool.Exception.KaToolException;
 import cn.katool.util.io.FileUtils;
 import cn.katool.store.interfaces.IQiNiuYunService;
 import com.qiniu.common.QiniuException;

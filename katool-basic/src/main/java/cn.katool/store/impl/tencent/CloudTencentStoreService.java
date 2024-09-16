@@ -1,5 +1,4 @@
 package cn.katool.store.impl.tencent;
-import cn.katool.Exception.KaToolException;
 import cn.katool.store.interfaces.ICloudTencentStoreService;
 import com.qiniu.common.QiniuException;
 import lombok.Data;

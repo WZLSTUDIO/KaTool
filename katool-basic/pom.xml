@@ -5,11 +5,11 @@
     <parent>
         <groupId>cn.katool</groupId>
         <artifactId>KaTool</artifactId>
-        <version>1.9.7.SNAPSHOT</version>
+        <version>1.9.7.ALPHA</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>katool-basic</artifactId>
-    <version>1.9.7.SNAPSHOT</version>
+    <version>1.9.7.ALPHA</version>
     <name>katool-basic</name>
     <description>katool-basic</description>
     <packaging>jar</packaging>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>cn.katool</groupId>
             <artifactId>katool-common</artifactId>
-            <version>1.9.7.SNAPSHOT</version>
+            <version>${katool.version}</version>
         </dependency>
     </dependencies>
     <!--开源协议...-->
@@ -85,6 +85,8 @@
                     <additionalJOptions>
                         <additionalJOption>-Xdoclint:none</additionalJOption>
                     </additionalJOptions>
+                    <show>private</show>
+                    <sourcepath>${project.basedir}/src/main/java</sourcepath>
                 </configuration>
                 <executions>
                     <execution>

@@ -11,11 +11,11 @@
     <name>KaTool</name>
     <groupId>cn.katool</groupId>
     <artifactId>KaTool</artifactId>
-    <version>1.9.7.SNAPSHOT</version>
+    <version>1.9.7.ALPHA</version>
     <packaging>pom</packaging>
     <url>https://github.com/Karosown/KaTool</url>
     <properties>
-        <katool.version>1.9.7.SNAPSHOT</katool.version>
+        <katool.version>1.9.7.ALPHA</katool.version>
     </properties>
     <modules>
         <module>katool-basic</module>
@@ -131,5 +131,101 @@
             <version>2.9.0</version>
         </dependency>
     </dependencies>
+    <!--开源协议...-->
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <!--开发者信息-->
+    <developers>
+        <developer>
+            <id>Karos</id>
+            <name>Karos</name>
+            <email>mail@wzl1.top</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+    <!--项目在github或其它托管平台的地址-->
+    <scm>
+        <connection>https://github.com/Karosown/KaTool.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:Karosown/KaTool.git</developerConnection>
+        <url>https://github.com/Karosown/KaTool/tree/master</url>
+    </scm>
+    <build>
+        <plugins>
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-compiler-plugin</artifactId>-->
+            <!--                <version>3.8.1</version>-->
+            <!--                <configuration>-->
+            <!--                    <compilerArgs>-->
+            <!--                        <arg>-g:none</arg>-->
+            <!--                    </compilerArgs>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalJOptions>
+                        <additionalJOption>-Xdoclint:none</additionalJOption>
+                    </additionalJOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
 </project>

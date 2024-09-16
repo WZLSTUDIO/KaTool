@@ -269,17 +269,17 @@ public class KimiAIService implements CommonAIService<
     public EventSource askStream(String msg,Consumer<String> kimiAiResponseDetail){
         return askStream(msg,kimiAiResponseDetail,chatErrorResolve);
     }
-    //    public EventSource askStreamInNet(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail, Function<KimiError,Boolean> errorResolve){
+    //    public EventSource askStreamUseTool(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail, Function<KimiError,Boolean> errorResolve){
 //        return askStreamAdapter(msg,kimiFunctionDriverMap,kimiAiResponseDetail,errorResolve, new CountDownLatch(1));
 //    }
-//    public EventSource askStreamInNet(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail){
-//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
+//    public EventSource askStreamUseTool(String msg, Map<String,Function<Map<String,String>,String>> kimiFunctionDriverMap,Consumer<String> kimiAiResponseDetail){
+//        return askStreamUseTool(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
 //    }
-//    public EventSource askStreamInNet(String msg,Consumer<String> kimiAiResponseDetail){
-//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
+//    public EventSource askStreamUseTool(String msg,Consumer<String> kimiAiResponseDetail){
+//        return askStreamUseTool(msg,kimiFunctionDriverMap,kimiAiResponseDetail,null);
 //    }
-//    public EventSource askStreamInNet(String msg,Consumer<String> kimiAiResponseDetail, Function<KimiError,Boolean> errorResolve){
-//        return askStreamInNet(msg,kimiFunctionDriverMap,kimiAiResponseDetail,errorResolve);
+//    public EventSource askStreamUseTool(String msg,Consumer<String> kimiAiResponseDetail, Function<KimiError,Boolean> errorResolve){
+//        return askStreamUseTool(msg,kimiFunctionDriverMap,kimiAiResponseDetail,errorResolve);
 //    }
     private String askAdapter(String msg, boolean usingHistory, boolean returnJson, Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap, Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         List<CommonAIMessage> messages = null;
@@ -316,10 +316,12 @@ public class KimiAIService implements CommonAIService<
             }
             if (null!=msg){
                 CommonAIMessage lastRequest = messages.get(messages.size() - 1);
+                // 对于toolcalls的一些调用信息，需要特殊处理
                 if (lastRequest instanceof KimiAiMergeMessage){
                     KimiAiMergeMessage mergeMessage = (KimiAiMergeMessage) lastRequest;
                     List<ToolCalls> toolCalls = mergeMessage.getTool_calls();
                     if (!CollectionUtils.isEmpty(toolCalls)){
+                        // 这里主要是为了避免重试时结尾时toolcalls的问题，这个时候我们重新调用
                         messages.remove(messages.size()-1);
                         messages.remove(messages.size()-1);
                     }
@@ -376,65 +378,65 @@ public class KimiAIService implements CommonAIService<
         }
         return message.getContent();
     }
-    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askWithContextUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,true,false,kimiFunctionDriverMap,errorResolve);
     }
-    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askBackJsonUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,false,true,kimiFunctionDriverMap,errorResolve);
     }
-    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askWithContextBackJsonUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,true,true,kimiFunctionDriverMap,errorResolve);
     }
-    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,errorResolve), type);
+    public Object askBackDaoUseTool(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+        return new Gson().fromJson(askBackJsonUseTool(msg, kimiFunctionDriverMap,errorResolve), type);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,errorResolve), type);
+    public Object askWithContextBackDaoUseTool(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+        return new Gson().fromJson(askWithContextBackJsonUseTool(msg, kimiFunctionDriverMap,errorResolve), type);
     }
-    public String askWithContextInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+    public String askWithContextUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
         return askAdapter(msg, true, false, kimiFunctionDriverMap, chatErrorResolve);
     }
-    public String askBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+    public String askBackJsonUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
         return askAdapter(msg,false,true,kimiFunctionDriverMap,chatErrorResolve);
     }
-    public String askWithContextBackJsonInNet(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+    public String askWithContextBackJsonUseTool(String msg,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
         return askAdapter(msg,true,true,kimiFunctionDriverMap,chatErrorResolve);
     }
-    public Object askBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
-        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,chatErrorResolve), type);
+    public Object askBackDaoUseTool(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return new Gson().fromJson(askBackJsonUseTool(msg, kimiFunctionDriverMap,chatErrorResolve), type);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
-        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,chatErrorResolve), type);
+    public Object askWithContextBackDaoUseTool(String msg, Type type,Map<String, Function<Map<String,String>,String>> kimiFunctionDriverMap) {
+        return new Gson().fromJson(askWithContextBackJsonUseTool(msg, kimiFunctionDriverMap,chatErrorResolve), type);
     }
-    public String askWithContextInNet(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askWithContextUseTool(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,true,false,kimiFunctionDriverMap,errorResolve);
     }
-    public String askBackJsonInNet(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askBackJsonUseTool(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,false,true,kimiFunctionDriverMap,errorResolve);
     }
-    public String askWithContextBackJsonInNet(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+    public String askWithContextBackJsonUseTool(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
         return askAdapter(msg,true,true,kimiFunctionDriverMap,errorResolve);
     }
-    public Object askBackDaoInNet(String msg, Type type,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return new Gson().fromJson(askBackJsonInNet(msg, kimiFunctionDriverMap,errorResolve), type);
+    public Object askBackDaoUseTool(String msg, Type type,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+        return new Gson().fromJson(askBackJsonUseTool(msg, kimiFunctionDriverMap,errorResolve), type);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return new Gson().fromJson(askWithContextBackJsonInNet(msg, kimiFunctionDriverMap,errorResolve), type);
+    public Object askWithContextBackDaoUseTool(String msg, Type type,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
+        return new Gson().fromJson(askWithContextBackJsonUseTool(msg, kimiFunctionDriverMap,errorResolve), type);
     }
-    public String askWithContextInNet(String msg) {
-        return askWithContextInNet(msg,kimiFunctionDriverMap);
+    public String askWithContextUseTool(String msg) {
+        return askWithContextUseTool(msg,kimiFunctionDriverMap);
     }
-    public String askBackJsonInNet(String msg) {
-        return askBackJsonInNet(msg,kimiFunctionDriverMap);
+    public String askBackJsonUseTool(String msg) {
+        return askBackJsonUseTool(msg,kimiFunctionDriverMap);
     }
-    public String askWithContextBackJsonInNet(String msg) {
-        return askWithContextBackJsonInNet(msg,kimiFunctionDriverMap);
+    public String askWithContextBackJsonUseTool(String msg) {
+        return askWithContextBackJsonUseTool(msg,kimiFunctionDriverMap);
     }
-    public Object askBackDaoInNet(String msg, Type type) {
-        return askBackDaoInNet(msg, type,kimiFunctionDriverMap);
+    public Object askBackDaoUseTool(String msg, Type type) {
+        return askBackDaoUseTool(msg, type,kimiFunctionDriverMap);
     }
-    public Object askWithContextBackDaoInNet(String msg, Type type) {
-        return askWithContextBackDaoInNet(msg, type,kimiFunctionDriverMap);
+    public Object askWithContextBackDaoUseTool(String msg, Type type) {
+        return askWithContextBackDaoUseTool(msg, type,kimiFunctionDriverMap);
     }
     @Override
     public String ask(String msg, Function<KimiError<KimiChatRequest>, Boolean> errorResolve) {
@@ -442,19 +444,19 @@ public class KimiAIService implements CommonAIService<
     }
     @Override
     public String askWithContext(String msg, Function<KimiError<KimiChatRequest>, Boolean> errorResolve) {
-        return askWithContextInNet(msg,null,errorResolve);
+        return askWithContextUseTool(msg,null,errorResolve);
     }
     @Override
     public String askBackJson(String msg, Function<KimiError<KimiChatRequest>, Boolean> errorResolve) {
-        return askBackJsonInNet(msg,null,errorResolve);
+        return askBackJsonUseTool(msg,null,errorResolve);
     }
     @Override
     public String askWithContextBackJson(String msg,Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return askWithContextBackJsonInNet(msg,null,errorResolve);
+        return askWithContextBackJsonUseTool(msg,null,errorResolve);
     }
     @Override
     public Object askBackDao(String msg, Type type, Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return askBackDaoInNet(msg,type,null,errorResolve);
+        return askBackDaoUseTool(msg,type,null,errorResolve);
     }
     @Override
     public Object askWithContextBackDao(String msg, Type type) {
@@ -463,7 +465,7 @@ public class KimiAIService implements CommonAIService<
     volatile AiServiceHttpUtil httpUtil = new AiServiceHttpUtil();
     @Override
     public Object askWithContextBackDao(String msg, Type type, Function<KimiError<KimiChatRequest>,Boolean> errorResolve) {
-        return  askWithContextBackDaoInNet(msg,type,null,errorResolve);
+        return  askWithContextBackDaoUseTool(msg,type,null,errorResolve);
     }
     @Override
     public String uploadFile(File file, Function<KimiError<KimiFileMeta>, Boolean> errorResolve) {

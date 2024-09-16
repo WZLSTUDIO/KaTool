@@ -22,7 +22,7 @@ public class KimiChatRequest<T extends CommonAIMessage> extends KimiBaseRequest<
     Float temperature = 0.3f;
     Float top_p = 1.0f;
     Long max_tokens = 1024L;
-//    Integer n = 1;
+    Integer n = 1;
     Float presence_penalty = 0f;
     Float frequency_penalty = 0f;
     ResponseFormat response_format =  new ResponseFormat(KimiResponseFormatEnum.TEXT);

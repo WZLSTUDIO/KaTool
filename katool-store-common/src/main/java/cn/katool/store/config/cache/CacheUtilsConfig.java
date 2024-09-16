@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @RefreshScope
-@DependsOn({"katool-cache"})
 public class CacheUtilsConfig {
     @Resource
     CacheConfig cacheConfig;

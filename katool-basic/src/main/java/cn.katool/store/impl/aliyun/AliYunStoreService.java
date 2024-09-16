@@ -1,5 +1,4 @@
 package cn.katool.store.impl.aliyun;
-import cn.katool.Exception.KaToolException;
 import cn.katool.store.interfaces.IAliYunStoreService;
 import com.qiniu.common.QiniuException;
 import lombok.Data;

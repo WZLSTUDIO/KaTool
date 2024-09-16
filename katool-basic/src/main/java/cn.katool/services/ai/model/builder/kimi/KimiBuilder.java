@@ -4,17 +4,13 @@ import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiConfig;
-import cn.katool.services.ai.CommonAIService;
-import cn.katool.services.ai.common.KimiAiCommonUtils;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
-import cn.katool.services.ai.model.entity.ErrorMessage;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
 import cn.katool.util.AiServiceHttpUtil;
-import com.alibaba.ttl.TransmittableThreadLocal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import cn.hutool.core.bean.BeanUtil;;
+;
 
 import java.util.List;
 import java.util.Locale;

@@ -1,5 +1,5 @@
 package cn.katool.config.auth;
-import cn.katool.config.common.KaToolInit;
+import cn.katool.KaToolInit;
 import cn.katool.constant.AuthConstant;
 import cn.katool.util.auth.AuthUtil;
 import lombok.AllArgsConstructor;

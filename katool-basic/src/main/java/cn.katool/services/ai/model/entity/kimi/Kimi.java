@@ -5,16 +5,13 @@ import cn.katool.Exception.KaToolException;
 import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiProxyConfig;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
-import cn.katool.services.ai.common.KimiAIServiceFactory;
 import cn.katool.services.ai.common.KimiAiCommonUtils;
 import cn.katool.services.ai.common.KimiEventSourceLinsener;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
-import cn.katool.services.ai.constant.kimi.KimiModel;
 import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatRequest;
 import cn.katool.services.ai.model.entity.RequestBody;
 import cn.katool.services.ai.model.dto.kimi.file.KimiFileMeta;
-import cn.katool.services.ai.server.kimi.KimiAIService;
 import cn.katool.util.AiServiceHttpUtil;
 import com.google.gson.reflect.TypeToken;
 import lombok.AllArgsConstructor;
@@ -26,19 +23,14 @@ import okhttp3.*;
 import okhttp3.internal.sse.RealEventSource;
 import okhttp3.sse.EventSource;
 import org.springframework.util.CollectionUtils;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.io.File;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 
@@ -144,16 +136,15 @@ public class Kimi{
 
     @SneakyThrows
     private <T extends RequestBody,R> R detailRequest(Request request, Type responseClass, Function<KimiError<T>,Boolean> errorResolve){
-        Response httpResponse = httpUtil.getClient().newCall(request)
-                .execute();
+        Response httpResponse = httpUtil.getClient().newCall(request).execute();
         String resJson = httpResponse.body().string();
         log.debug("KimiAI - [REQUEST::response] JSON is {}",resJson);
         boolean contains = resJson.contains("\"finish_reason\":\"length\"");
         if (!httpResponse.isSuccessful()|| contains){
             KimiError<T> kimiError =
                     httpResponse.isSuccessful()?
-                            new KimiError<T>().setError(new KimiErrorMessage().setMessage("token is too large, back json is [" + resJson + "]").setCode(ErrorCode.PARAMS_ERROR.getCode()))
-                            : KimiGsonFactory.create().fromJson(resJson, new TypeToken<KimiError<T>>(){}.getType());
+                    new KimiError<T>().setError(new KimiErrorMessage().setMessage("token is too large, back json is [" + resJson + "]").setCode(ErrorCode.PARAMS_ERROR.getCode()))
+                    : KimiGsonFactory.create().fromJson(resJson, new TypeToken<KimiError<T>>(){}.getType());
 
             T requestBody = (T) this.requesetResultTempStorage.get();
             kimiError.setRequestBody(requestBody);

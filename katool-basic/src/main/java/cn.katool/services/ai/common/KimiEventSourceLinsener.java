@@ -8,21 +8,14 @@ import cn.katool.services.ai.constant.CommonAIRoleEnum;
 import cn.katool.services.ai.constant.kimi.KimiMessageFinishResonConstants;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatResponse;
 import cn.katool.services.ai.model.dto.kimi.message.KimiAiMergeMessage;
-import cn.katool.services.ai.model.dto.kimi.message.KimiAiToolCallsBackMessage;
 import cn.katool.services.ai.model.dto.kimi.message.KimiAiToolCallsMessage;
-import cn.katool.services.ai.model.dto.kimi.tools.KimiToolBody;
 import cn.katool.services.ai.model.dto.kimi.tools.ToolCalls;
 import cn.katool.services.ai.model.dto.kimi.tools.ToolCallsFuntion;
-import cn.katool.services.ai.model.dto.kimi.tools.functions.KimiFunctionBody;
-import cn.katool.services.ai.model.dto.kimi.tools.functions.parameters.KimiToolParameters;
 import cn.katool.services.ai.model.entity.CommonAIMessage;
 import cn.katool.services.ai.model.entity.kimi.KimiError;
-import cn.katool.services.ai.model.entity.kimi.KimiErrorMessage;
-import cn.katool.util.lock.LocalLockMap;
 import com.alibaba.excel.util.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.netty.util.internal.StringUtil;
 import lombok.SneakyThrows;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -36,13 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class KimiEventSourceLinsener extends EventSourceListener {
 
