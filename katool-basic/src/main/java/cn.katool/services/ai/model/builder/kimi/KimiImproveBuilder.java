@@ -1,16 +1,14 @@
 package cn.katool.services.ai.model.builder.kimi;
-import cn.katool.services.ai.CommonAIService;
-import cn.katool.services.ai.model.entity.ErrorMessage;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
 import cn.katool.util.AiServiceHttpUtil;
 
 import java.util.Map;
 
-public class KimiBuilderBase extends KimiDefaultBuilder{
-    public KimiBuilderBase(KimiBuilder kimiBuilder) {
+public class KimiImproveBuilder extends KimiDefaultBuilder{
+    public KimiImproveBuilder(KimiBuilder kimiBuilder) {
         super(kimiBuilder);
     }
-    public KimiBuilderBase() {
+    public KimiImproveBuilder() {
     }
     public Kimi build(AiServiceHttpUtil httpUtil) {
         return kimiBuilder.build(httpUtil);

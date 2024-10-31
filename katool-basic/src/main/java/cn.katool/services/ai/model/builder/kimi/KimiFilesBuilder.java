@@ -3,7 +3,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
-public class KimiFilesBuilder extends KimiBuilderBase{
+public class KimiFilesBuilder extends KimiImproveBuilder {
     public KimiFilesBuilder(KimiBuilder kimiBuilder) {
         super(kimiBuilder);
     }

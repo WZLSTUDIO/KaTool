@@ -2,12 +2,18 @@ package cn.katool.services.ai.common;
 
 import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
+import cn.katool.services.ai.constant.CommonAIRoleEnum;
 import cn.katool.services.ai.constant.kimi.KimiModel;
+import cn.katool.services.ai.model.drive.PromptTemplateDrive;
 import cn.katool.services.ai.model.dto.kimi.chat.KimiChatRequest;
+import cn.katool.services.ai.model.entity.CommonAIMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,27 +40,84 @@ public class KimiAiCommonUtils {
         }
         return t1;
     }
+    // 模型自动升级策略
     public static KimiChatRequest upgrade(List<String>keys,KimiChatRequest kimiChatRequest) {
-        String model = kimiChatRequest.getModel();
-        Long maxToken = KimiAiCommonUtils.getMaxToken(model);
-        Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null,false)
-                .setKeys(keys).setChatRequest(kimiChatRequest)
-                .countToken(kimiChatRequest.getMessages());
-        if (maxToken < aLong) {
-            String nextModel = KimiAiCommonUtils.getNextModel(model);
-            Long nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);
-            if (nextMaxToken < aLong) {
-                nextModel = KimiAiCommonUtils.getNextModel(nextModel);
-                nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);
+        try{
+            String model = kimiChatRequest.getModel();
+            // 获取当前模型支持的最大token
+            Long maxToken = KimiAiCommonUtils.getMaxToken(model);
+            // 用一个新的模型来询问已经使用的token数量
+            Long aLong = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K,null,null,false)
+                    .setKeys(keys).setChatRequest(kimiChatRequest)
+                    .countToken(kimiChatRequest.getMessages());
+            // 如果说超出了模型限制，那么进行模型升级
+            if (maxToken < aLong) {
+                String nextModel = KimiAiCommonUtils.getNextModel(model);
+                Long nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);
+                // 如果是超级加倍了，那么继续
+                if (nextMaxToken < aLong) {
+                    nextModel = KimiAiCommonUtils.getNextModel(nextModel);
+                    nextMaxToken = KimiAiCommonUtils.getMaxToken(nextModel);
+                }
+                log.warn("KimiAiService-Model[upgrade] request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,nextMaxToken);
+                kimiChatRequest.setModel(nextModel);
+                kimiChatRequest.setMax_tokens(nextMaxToken-aLong);
             }
-            log.warn("KimiAiService-Model[upgrade] request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,nextMaxToken);
-            kimiChatRequest.setModel(nextModel);
-            kimiChatRequest.setMax_tokens(nextMaxToken-aLong);
+            else{
+                log.warn("KimiAiService-Model[upgrade] request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,maxToken-aLong);
+                kimiChatRequest.setMax_tokens(maxToken-aLong);
+            }
+        } catch (KaToolException e) {
+            if (e.getCode() == ErrorCode.AI_UPGRADE_ERROR.getCode()){
+                // 对于聊天内容进行主旨内容提取
+                List<CommonAIMessage> messages = kimiChatRequest.getMessages();
+                List<CommonAIMessage> list = messages.subList(1, messages.size());
+                StringBuffer prompt = new StringBuffer();list.stream().filter(v -> v.getRole().equals(CommonAIRoleEnum.SYS.getRole()))
+                        .map(v -> v.getContent()).collect(Collectors.toList()).forEach(item ->{
+                            prompt.append("[ BACK ]:(");
+                            prompt.append(item);
+                            prompt.append(")\n");
+                        });
+                String backtemplate = prompt.toString();
+
+                HashMap<String, String> insteadMapping = new HashMap<>();
+                insteadMapping.put("historyStory", backtemplate);
+                PromptTemplateDrive promptTemplateDrive = PromptTemplateDrive.create("As a professional paper summarization expert, please summarize the following content using the format:\n" +
+                        "\n" +
+                        "\\[ BACK \\](content)\n" +
+                        "\n" +
+                        "In this format, each \\[BACK\\] represents a result, and the content within the parentheses is the main content.\n" +
+                        "\n" +
+                        "Below is the chat content. Please provide only the main content without any additional commentary:\n" +
+                        "\n" +
+                        "${historyStory}", insteadMapping);
+                // 对上下文总结的数据
+                String finalData = KimiAIServiceFactory.createKimiAiService(KimiModel.MOONSHOT_V1_8K, promptTemplateDrive, null, false)
+                        .setKeys(keys).ask("Please provide the chat content so I can summarize it in detail using the same language.");
+                HashMap<String, String> genrouterInsteadMap = new HashMap<>();
+                genrouterInsteadMap.put("history content", finalData);
+                List<CommonAIMessage> userQuestions = messages.stream().filter(v -> v.getRole().equals(CommonAIRoleEnum.USER.getRole())).collect(Collectors.toList());
+                genrouterInsteadMap.put("my question", userQuestions.get(userQuestions.size()-1).getContent());
+                PromptTemplateDrive generouter = PromptTemplateDrive.create("PAside from the previous prompts, we have already engaged in some conversations. Due to the extensive content, I asked a recorder to summarize the context so we can realign our understanding. Below is the main content of our previous discussion:\n" +
+                        "\n" +
+                        "[ BACK ]( ${history content} )\n" +
+                        "\n" +
+                        "Please summarize the above content yourself without repeating it.\n" +
+                        "\n" +
+                        "After summarizing, I initiated the last dialogue, which is as follows:\n" +
+                        "\n" +
+                        "[ USER ]( ${my question} )\n" +
+                        "\n" +
+                        "Please use the language from the last conversation to respond to the message I initiated.\n" +
+                        "\n" +
+                        "Format:\n" +
+                        "[ BACK ]( history content )\n" +
+                        "[ USER ]( my question )", genrouterInsteadMap);
+                CommonAIMessage commonAIMessage = generouter.generateTemplate();
+                commonAIMessage.setRole(CommonAIRoleEnum.USER.getRole());
+            }
         }
-        else{
-            log.warn("KimiAiService-Model[upgrade] request-token:{} ; setting-maxtoken:{} ; mode-maxtoken:{} ; target-token:{}",aLong,kimiChatRequest.getMax_tokens(),maxToken,maxToken-aLong);
-            kimiChatRequest.setMax_tokens(maxToken-aLong);
-        }
+        // 策略优化：上下文总结
         return kimiChatRequest;
     }
     public static Long getIniterToken(String kimiModel) {
@@ -100,8 +163,9 @@ public class KimiAiCommonUtils {
             case KimiModel.MOONSHOT_V1_32K:
                 return KimiModel.MOONSHOT_V1_128K;
             case KimiModel.MOONSHOT_V1_128K:
+                return KimiModel.MOONSHOT_V1_AUTO;
             default:
-                throw new RuntimeException("已达到最大限制，模型升级失败，请开启新的会话");
+                throw new KaToolException(ErrorCode.AI_UPGRADE_ERROR,"已达到最大限制，模型升级失败，请开启新的会话");
         }
     }
 }

@@ -5,6 +5,8 @@ import cn.katool.Exception.KaToolException;
 import cn.katool.common.SessionPackageTheadLocalAdaptor;
 import cn.katool.config.ai.kimi.KimiConfig;
 import cn.katool.services.ai.constant.kimi.KimiBuilderEnum;
+import cn.katool.services.ai.model.builder.CommonApiBuilder;
+import cn.katool.services.ai.model.builder.OpenAIBuilder;
 import cn.katool.services.ai.model.entity.kimi.Kimi;
 import cn.katool.util.AiServiceHttpUtil;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class KimiBuilder extends KimiCommonBuilder{
+public class KimiBuilder extends OpenAIBuilder {
         private String url;
         private KimiBuilderEnum master;
         private KimiBuilderEnum status;
@@ -31,12 +33,14 @@ public class KimiBuilder extends KimiCommonBuilder{
             return new KimiBuilder(KimiConfig.KIMI_BASE_URL,KimiBuilderEnum.BASE);
         }
         private void validStatus(KimiBuilderEnum target){
+            // 如果下一个方法的来源没有包含当前的status，那么报错
             if (!target.getLastStatus().contains(this.status)){
                 throw new KaToolException(ErrorCode.OPER_ERROR,
                         "current status is " + status.getName()+", but target status's father status is" +  target.getLastStatus());
             }
         }
         private KimiBuilder solveStepWithMethodName(){
+            // 创建一个新的builder
             KimiBuilder kimiBuilder = KimiBuilder.create();
             BeanUtil.copyProperties(this, kimiBuilder);
             String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();

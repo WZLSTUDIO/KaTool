@@ -3,7 +3,8 @@ import lombok.Data;
 public enum ErrorCode {
     PARAMS_ERROR(40000, "参数错误"),
     FILE_ERROR(50000, "文件错误"),
-    OPER_ERROR(60000,"操作错误");
+    OPER_ERROR(60000,"操作错误"),
+    AI_UPGRADE_ERROR(70000,"AI升级错误");
     private int code;
     private String message;
     public int getCode() {

@@ -7,8 +7,8 @@ public class KimiMeBuilder extends KimiDefaultBuilder {
     }
     public KimiMeBuilder() {
     }
-    public KimiBuilderBase balance(){
+    public KimiImproveBuilder balance(){
         KimiBuilder resolve = (KimiBuilder) this.resolve(kimiBuilder);
-        return new KimiBuilderBase(resolve);
+        return new KimiImproveBuilder(resolve);
     }
 }

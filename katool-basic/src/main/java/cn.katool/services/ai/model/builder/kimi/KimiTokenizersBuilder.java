@@ -1,7 +1,7 @@
 package cn.katool.services.ai.model.builder.kimi;
 import lombok.Data;
 @Data
-public class KimiTokenizersBuilder extends KimiBuilderBase {
+public class KimiTokenizersBuilder extends KimiImproveBuilder {
     public KimiTokenizersBuilder(KimiBuilder kimiBuilder) {
         super(kimiBuilder);
     }

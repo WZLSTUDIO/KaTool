@@ -1,11 +1,11 @@
 package cn.katool.services.ai.model.builder.kimi;
-public class KimiParamBuilder extends  KimiBuilderBase{
+public class KimiParamBuilder extends KimiImproveBuilder {
     KimiBuilder builder;
     public KimiParamBuilder(KimiBuilder builder) {
         this.builder = builder;
     }
-    public KimiBuilderBase content(){
+    public KimiImproveBuilder content(){
         KimiBuilder resolve = (KimiBuilder) this.resolve(builder);
-        return new KimiBuilderBase(resolve);
+        return new KimiImproveBuilder(resolve);
     }
 }

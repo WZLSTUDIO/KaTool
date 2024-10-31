@@ -1,15 +1,13 @@
-package cn.katool.services.ai.model.builder.kimi;
-import cn.katool.services.ai.CommonAIService;
-import cn.katool.services.ai.model.entity.ErrorMessage;
-import cn.katool.services.ai.model.entity.kimi.Kimi;
+package cn.katool.services.ai.model.builder;
+import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
+import cn.katool.services.ai.model.builder.kimi.KimiDefaultBuilder;
 import com.alibaba.excel.util.StringUtils;
 import cn.hutool.core.bean.BeanUtil;;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
 
-public class KimiCommonBuilder {
-    protected KimiBuilder devailParam(KimiBuilder builder,Object value){
+public class CommonApiBuilder {
+    protected KimiBuilder devailParam(KimiBuilder builder, Object value){
         KimiBuilder res =KimiBuilder.create();
         BeanUtil.copyProperties(builder,res);
         String url = builder.getUrl();
@@ -57,7 +55,7 @@ public class KimiCommonBuilder {
         }
         return invoke;
     }
-    protected <T extends KimiDefaultBuilder> T resolve(KimiBuilder builder,Class<T> clazz){
+    protected <T extends KimiDefaultBuilder> T resolve(KimiBuilder builder, Class<T> clazz){
         Object invoke = builder;
         T t;
         try {

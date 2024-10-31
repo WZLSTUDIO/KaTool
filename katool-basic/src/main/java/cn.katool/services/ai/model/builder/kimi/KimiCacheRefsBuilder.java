@@ -1,7 +1,7 @@
 package cn.katool.services.ai.model.builder.kimi;
 import lombok.Data;
 @Data
-public class KimiCacheRefsBuilder extends KimiBuilderBase {
+public class KimiCacheRefsBuilder extends KimiImproveBuilder {
     public KimiCacheRefsBuilder() {
     }
     public KimiCacheRefsBuilder(KimiBuilder kimiBuilder) {

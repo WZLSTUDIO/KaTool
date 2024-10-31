@@ -1,5 +1,5 @@
 package cn.katool.services.ai.model.builder.kimi;
-public class KimiCacheBuilderInterface extends KimiBuilderBase {
+public class KimiCacheBuilderInterface extends KimiImproveBuilder {
     public KimiCacheBuilderInterface limit(Integer limit){
         this.devailArgAtrWithMethodName(kimiBuilder, limit);
         return this;

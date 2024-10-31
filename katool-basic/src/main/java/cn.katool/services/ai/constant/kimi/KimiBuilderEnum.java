@@ -1,4 +1,6 @@
 package cn.katool.services.ai.constant.kimi;
+import cn.katool.services.ai.model.builder.kimi.KimiBuilder;
+
 import java.util.Arrays;
 import java.util.List;
 public enum KimiBuilderEnum {
