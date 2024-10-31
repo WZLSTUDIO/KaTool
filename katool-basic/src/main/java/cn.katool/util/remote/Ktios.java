@@ -4,7 +4,6 @@ import cn.katool.Exception.ErrorCode;
 import cn.katool.Exception.KaToolException;
 import cn.katool.services.ai.acl.kimi.KimiGsonFactory;
 import cn.katool.util.AiServiceHttpUtil;
-import cn.katool.util.remote.formatChain.EnDeCodeFormat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.SneakyThrows;
@@ -17,12 +16,6 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 public class Ktios {
-    private EnDeCodeFormat decodeFormat;
-
-    public Ktios setDecodeFormat(EnDeCodeFormat decodeFormat) {
-        this.decodeFormat = decodeFormat;
-        return this;
-    }
 
     public static class Then {
         public static class err<T>{
@@ -56,7 +49,6 @@ public class Ktios {
         public Map<String,String> then(BiFunction<err<Map<String,String>>,res<Map<String,String>>,Map<String,String>> consumer) {
             ResponseBody body = response.body();
             ResponseDao<Map<String,String>> data= KimiGsonFactory.create().fromJson(body.string(),TypeToken.get(new ResponseDao().getClass()).getType());
-
             if(response.isSuccessful()){
                 return consumer.apply(null, new res<Map<String,String>>(data));
             }
